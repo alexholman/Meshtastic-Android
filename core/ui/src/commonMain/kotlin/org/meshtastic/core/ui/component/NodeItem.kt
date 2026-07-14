@@ -339,11 +339,6 @@ private fun NodeSignalRow(thatNode: Node, isThisNode: Boolean, contentColor: Col
                     add { ChannelInfo(channel = thatNode.channel, contentColor = contentColor) }
                 }
             }
-
-            val satCount = thatNode.validPosition?.sats_in_view ?: 0
-            if (satCount > 0) {
-                add { SatelliteCountInfo(satCount = satCount, contentColor = contentColor) }
-            }
         }
 
     if (signalChip != null || items.isNotEmpty()) {
@@ -359,21 +354,31 @@ private fun NodeSignalRow(thatNode: Node, isThisNode: Boolean, contentColor: Col
 private fun gatherSensors(node: Node, tempInFahrenheit: Boolean, contentColor: Color): List<@Composable () -> Unit> {
     val items = mutableListOf<@Composable () -> Unit>()
     val env = node.environmentMetrics
+    val aq = node.airQualityMetrics
     val pax = node.paxcounter
 
     if (pax.ble != 0 || pax.wifi != 0) {
         items.add { PaxcountInfo(pax = "B:${pax.ble} W:${pax.wifi}", contentColor = contentColor) }
     }
 
-    if ((env.temperature ?: 0f) != 0f) {
-        val temp = MetricFormatter.temperature(env.temperature ?: 0f, tempInFahrenheit)
+    // Temperature carries presence, so `null` already means "no sensor" — testing against 0 hid an ordinary 0 °C
+    // reading, which the temperature chart plots. Prefer the environment sensor, then the SCD4x CO₂ sensor's own.
+    (env.temperature ?: aq.co2_temperature)?.let { temperature ->
+        val temp = MetricFormatter.temperature(temperature, tempInFahrenheit)
         items.add { TemperatureInfo(temp = temp, contentColor = contentColor) }
     }
+
+    // Humidity keeps its zero-guard: 0% RH is not physically reachable, and the humidity chart filters it too.
     if ((env.relative_humidity ?: 0f) != 0f) {
         items.add {
             HumidityInfo(humidity = MetricFormatter.humidity(env.relative_humidity ?: 0f), contentColor = contentColor)
         }
+    } else if ((aq.co2_humidity ?: 0f) != 0f) {
+        items.add {
+            HumidityInfo(humidity = MetricFormatter.humidity(aq.co2_humidity ?: 0f), contentColor = contentColor)
+        }
     }
+
     if ((env.barometric_pressure ?: 0f) != 0f) {
         items.add {
             PressureInfo(

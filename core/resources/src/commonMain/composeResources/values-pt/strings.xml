@@ -133,6 +133,7 @@
     <string name="delivery_confirmed">Entrega confirmada</string>
     <string name="desc_node_filter_clear">limpar filtro de nodes</string>
     <string name="description">Descrição</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Nome do nó de alternativo</string>
     <string name="details">Detalhes</string>
     <string name="detection_sensor">Sensor de deteção</string>
@@ -181,7 +182,6 @@
     <string name="error_duty_cycle">Limite do ciclo de trabalho atingido. Não é possível enviar mensagens no momento. Tente novamente mais tarde.</string>
     <string name="ethernet_enabled">Ethernet ativada</string>
     <string name="exchange_position">Intercâmbio de posições</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Exportar configuração</string>
     <string name="external_notification">Notificação externa</string>
     <string name="external_notification_config">Configuração de Notificação Externa</string>
@@ -201,6 +201,7 @@
     <string name="fixed_pin">PIN fixo</string>
     <string name="fixed_position">Posição fixa</string>
     <string name="flip_screen">Inverter ecrã</string>
+    <!-- FORMAT -->
     <string name="free_memory">Memória livre</string>
     <string name="freq">Freq</string>
     <string name="friendly_name">Nome amigável</string>
@@ -250,6 +251,7 @@
     <string name="ip_port">Porta:</string>
     <string name="ipv4_mode">Modo IPv4</string>
     <string name="json_output_enabled">Saída JSON ativada</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="latitude">Latitude</string>
     <string name="led_state">Estado do LED</string>
@@ -293,6 +295,8 @@
     <string name="map_tile_download_estimate">Estimativa de download do bloco:</string>
     <string name="map_tile_source">Fonte dos blocos</string>
     <string name="max">Máximo</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Nenhum</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic">Nome do nó de alternativo</string>
     <string name="meshtastic_alerts_notifications">Notificações de alerta</string>
@@ -305,7 +309,6 @@
     <string name="message">Mensagem</string>
     <string name="message_delivery_status">Estado da entrega</string>
     <string name="message_input_label">Mensagem</string>
-    <string name="message_status_enroute">A aguardar confirmação</string>
     <string name="message_status_queued">Na fila de envio</string>
     <string name="messages">Mensagens</string>
     <string name="minimum_broadcast_seconds">Transmissão mínima (segundos)</string>
@@ -514,6 +517,8 @@
     <string name="shutdown">Desligar</string>
     <string name="signal">Sinal</string>
     <string name="signal_quality">Qualidade do Sinal</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Ecrã</string>
     <string name="slot">Slot</string>
     <string name="smart_position">Posição Inteligente</string>
     <string name="snr">SNR</string>
@@ -545,6 +550,7 @@
     </plurals>
     <string name="traceroute_log">Traçar rota</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Enviar por LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
@@ -578,6 +584,7 @@
     <string name="username">Utilizador</string>
     <string name="via_mqtt">via MQTT</string>
     <string name="voltage">Voltagem</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Apagar o ponto de referência?</string>
     <string name="waypoint_edit">Editar ponto de referência</string>
     <string name="waypoint_new">Novo ponto de referência</string>

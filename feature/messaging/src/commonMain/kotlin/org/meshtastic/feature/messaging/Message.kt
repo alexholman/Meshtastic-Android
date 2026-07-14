@@ -19,9 +19,13 @@
 package org.meshtastic.feature.messaging
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +34,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -52,7 +57,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
@@ -61,9 +68,16 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,6 +88,7 @@ import org.meshtastic.core.common.util.HomoglyphCharacterStringTransformer
 import org.meshtastic.core.database.entity.QuickChatAction
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.ContactKey
+import org.meshtastic.core.model.MENTION_TOKEN_REGEX
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.util.getChannel
@@ -82,7 +97,9 @@ import org.meshtastic.core.resources.message_input_label
 import org.meshtastic.core.resources.send
 import org.meshtastic.core.resources.type_a_message
 import org.meshtastic.core.resources.unknown_channel
+import org.meshtastic.core.ui.component.InlineStyle
 import org.meshtastic.core.ui.component.SharedContactDialog
+import org.meshtastic.core.ui.component.inlineMarkdownStyleRanges
 import org.meshtastic.core.ui.component.smartScrollToIndex
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Send
@@ -90,6 +107,7 @@ import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.feature.messaging.component.ActionModeTopBar
 import org.meshtastic.feature.messaging.component.DeleteMessageDialog
+import org.meshtastic.feature.messaging.component.FormattingToolbar
 import org.meshtastic.feature.messaging.component.MESSAGE_CHARACTER_LIMIT_BYTES
 import org.meshtastic.feature.messaging.component.MessageMenuAction
 import org.meshtastic.feature.messaging.component.MessageSearchBar
@@ -97,9 +115,13 @@ import org.meshtastic.feature.messaging.component.MessageTopBar
 import org.meshtastic.feature.messaging.component.QuickChatRow
 import org.meshtastic.feature.messaging.component.ReplySnippet
 import org.meshtastic.feature.messaging.component.ScrollToBottomFab
+import org.meshtastic.feature.messaging.component.TranslationModelDownloadDialog
 
 private const val ROUNDED_CORNER_PERCENT = 100
 private const val MAX_LINES = 3
+
+// Minimum draft length before the markdown formatting toolbar appears (matches the iOS client).
+private const val FORMATTING_TOOLBAR_MIN_CHARS = 3
 
 /**
  * The main screen for displaying and sending messages to a contact or channel.
@@ -151,6 +173,8 @@ fun MessageScreen(
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val searchResultIndex by viewModel.searchResultIndex.collectAsStateWithLifecycle()
     val currentSearchResult by viewModel.currentSearchResult.collectAsStateWithLifecycle()
+    val translationAvailable by viewModel.translationAvailable.collectAsStateWithLifecycle()
+    val translationDialogState by viewModel.translationDialogState.collectAsStateWithLifecycle()
 
     // Sync text field changes back to ViewModel draft
     LaunchedEffect(messageInputState) {
@@ -283,6 +307,10 @@ fun MessageScreen(
                         coroutineScope.launch { clipboardManager.setClipEntry(createClipEntry(event.text, event.text)) }
                         selectedMessageIds.value = emptySet()
                     }
+
+                    is MessageScreenEvent.TranslateMessage -> viewModel.translateMessage(event.message)
+
+                    is MessageScreenEvent.ToggleShowTranslated -> viewModel.toggleShowTranslated(event.message)
                 }
             }
 
@@ -296,6 +324,12 @@ fun MessageScreen(
             onDismiss = { showDeleteDialog = false },
         )
     }
+
+    TranslationModelDownloadDialog(
+        state = translationDialogState,
+        onConfirm = viewModel::confirmTranslationModelDownload,
+        onDismiss = viewModel::dismissTranslationDialog,
+    )
 
     sharedContact?.let { contact -> SharedContactDialog(contact = contact, onDismiss = { sharedContact = null }) }
 
@@ -319,7 +353,10 @@ fun MessageScreen(
                                     (0 until pagedMessages.itemCount)
                                         .mapNotNull { pagedMessages[it] }
                                         .filter { it.uuid in selectedMessageIds.value }
-                                        .joinToString("\n") { it.text }
+                                        .joinToString("\n") {
+                                            // Copy what the bubble displays (matches the sheet's Copy action)
+                                            it.displayedText(searching = isSearchActive && searchQuery.isNotEmpty())
+                                        }
                                 onEvent(MessageScreenEvent.CopyToClipboard(copiedText))
                             }
 
@@ -398,6 +435,7 @@ fun MessageScreen(
                     isEnabled = connectionState is ConnectionState.Connected,
                     isHomoglyphEncodingEnabled = homoglyphEncodingEnabled,
                     textFieldState = messageInputState,
+                    nodes = nodes,
                     onSendMessage = {
                         val messageText = messageInputState.text.toString().trim { it.isWhitespace() }
                         if (messageText.isNotEmpty()) {
@@ -425,6 +463,7 @@ fun MessageScreen(
                     showFiltered = showFiltered,
                     filteringDisabled = filteringDisabled,
                     searchQuery = if (isSearchActive) searchQuery else "",
+                    translationAvailable = translationAvailable,
                 ),
                 handlers =
                 MessageListHandlers(
@@ -436,6 +475,8 @@ fun MessageScreen(
                     onDeleteMessages = { viewModel.deleteMessages(it) },
                     onSendMessage = { text, key -> viewModel.sendMessage(text, key) },
                     onReply = { message -> replyingToPacketId = message?.packetId },
+                    onTranslate = { onEvent(MessageScreenEvent.TranslateMessage(it)) },
+                    onToggleTranslation = { onEvent(MessageScreenEvent.ToggleShowTranslated(it)) },
                 ),
                 quickEmojis = viewModel.frequentEmojis,
             )
@@ -467,21 +508,79 @@ private fun handleQuickChatAction(
     )
 }
 
+private const val MENTION_SUGGESTION_LIMIT = 5
+
+/** An in-progress `@name` the user is typing (before selection completes it into a `@!<hex>` token). */
+internal data class MentionQuery(val start: Int, val end: Int, val query: String)
+
+/**
+ * Detects an active @mention query: an `@` at the caret that starts a word and is followed only by non-whitespace.
+ * Returns null when there is nothing to autocomplete (already-completed tokens include a trailing space, so they fail
+ * the no-whitespace check).
+ */
+@Suppress("ReturnCount") // Guard clauses read more clearly than a single nested expression here.
+internal fun currentMentionQuery(text: String, selection: TextRange): MentionQuery? {
+    if (!selection.collapsed) return null
+    val cursor = selection.start
+    if (cursor == 0) return null
+    val at = text.lastIndexOf('@', cursor - 1)
+    if (at < 0) return null
+    if (at > 0 && !text[at - 1].isWhitespace()) return null
+    val query = text.substring(at + 1, cursor)
+    if (query.any { it.isWhitespace() }) return null
+    return MentionQuery(at, cursor, query)
+}
+
+private fun Node.matchesMention(query: String): Boolean {
+    if (query.isEmpty()) return true
+    val q = query.lowercase()
+    return user.long_name.lowercase().contains(q) ||
+        user.short_name.lowercase().contains(q) ||
+        user.id.lowercase().contains(q)
+}
+
+/**
+ * Displays `@!<hex>` tokens as `@FriendlyName` and applies live inline-markdown styling (bold/italic/strikethrough/
+ * code) while typing. Both are presentation-only via [OutputTransformation]: the stored buffer keeps the hex wire form
+ * and the raw markdown delimiters, so the bytes sent are unchanged.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+private fun mentionOutputTransformation(nodesById: Map<String, Node>) = OutputTransformation {
+    for (match in MENTION_TOKEN_REGEX.findAll(toString()).toList().asReversed()) {
+        val node = nodesById[match.groupValues[1]] ?: continue
+        replace(match.range.first, match.range.last + 1, "@" + node.user.long_name.ifEmpty { node.user.short_name })
+    }
+    // Live markdown styling over the (mention-substituted) buffer. Delimiters stay visible; only spans are added.
+    for (span in inlineMarkdownStyleRanges(toString())) {
+        val spanStyle =
+            when (span.style) {
+                InlineStyle.Bold -> SpanStyle(fontWeight = FontWeight.Bold)
+                InlineStyle.Italic -> SpanStyle(fontStyle = FontStyle.Italic)
+                InlineStyle.Strikethrough -> SpanStyle(textDecoration = TextDecoration.LineThrough)
+                InlineStyle.Code -> SpanStyle(fontFamily = FontFamily.Monospace)
+                InlineStyle.Link -> continue
+            }
+        addStyle(spanStyle, span.range.first, span.range.last + 1)
+    }
+}
+
 /**
  * The text input field for composing messages.
  *
  * @param isEnabled Whether the input field should be enabled.
  * @param textFieldState The [TextFieldState] managing the input's text.
+ * @param nodes Known nodes, used for the `@`-mention autocomplete and friendly-name display.
  * @param modifier The modifier for this composable.
  * @param maxByteSize The maximum allowed size of the message in bytes.
  * @param onSendMessage Callback invoked when the send button is pressed or send IME action is triggered.
  */
-@Suppress("LongMethod") // Due to multiple parts of the OutlinedTextField
+@Suppress("LongMethod", "CyclomaticComplexMethod") // Due to multiple parts of the OutlinedTextField
 @Composable
 private fun MessageInput(
     isEnabled: Boolean,
     isHomoglyphEncodingEnabled: Boolean,
     textFieldState: TextFieldState,
+    nodes: List<Node>,
     modifier: Modifier = Modifier,
     maxByteSize: Int = MESSAGE_CHARACTER_LIMIT_BYTES,
     onSendMessage: () -> Unit,
@@ -504,55 +603,130 @@ private fun MessageInput(
     val isOverLimit = currentByteLength > maxByteSize
     val canSend = !isOverLimit && currentText.isNotEmpty() && isEnabled
 
-    OutlinedTextField(
-        modifier =
-        modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).onKeyEvent { keyEvent ->
-            val isEnterNoShift = keyEvent.key == Key.Enter && !keyEvent.isShiftPressed
-            if (isEnterNoShift) {
-                if (keyEvent.type == KeyEventType.KeyUp && canSend) {
-                    onSendMessage()
-                }
-                true // consume both KeyDown and KeyUp to prevent newline insertion
-            } else {
-                false
-            }
-        },
-        state = textFieldState,
-        lineLimits = TextFieldLineLimits.MultiLine(1, MAX_LINES),
-        label = { Text(stringResource(Res.string.message_input_label)) },
-        enabled = isEnabled,
-        shape = RoundedCornerShape(ROUNDED_CORNER_PERCENT.toFloat()),
-        isError = isOverLimit,
-        placeholder = { Text(stringResource(Res.string.type_a_message)) },
-        keyboardOptions =
-        KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Send),
-        onKeyboardAction = { if (canSend) onSendMessage() },
-        supportingText = {
-            if (isEnabled) { // Only show supporting text if input is enabled
-                Text(
-                    text = "$currentByteLength/$maxByteSize",
-                    style = MaterialTheme.typography.bodySmall,
-                    color =
-                    if (isOverLimit) {
-                        MaterialTheme.colorScheme.error
+    val nodesById = remember(nodes) { nodes.associateBy { it.user.id } }
+    val mentionOutput = remember(nodesById) { mentionOutputTransformation(nodesById) }
+    val mentionQuery by
+        remember(textFieldState) {
+            derivedStateOf { currentMentionQuery(textFieldState.text.toString(), textFieldState.selection) }
+        }
+    val suggestions =
+        remember(mentionQuery, nodes) {
+            val query = mentionQuery?.query ?: return@remember emptyList<Node>()
+            nodes.filter { it.matchesMention(query) }.take(MENTION_SUGGESTION_LIMIT)
+        }
+
+    // While the mention popup is open, Enter / send completes the top suggestion instead of sending a raw @query.
+    val mentionActive = mentionQuery != null && suggestions.isNotEmpty()
+    fun insertMention(node: Node) {
+        val q = mentionQuery ?: return
+        textFieldState.edit {
+            val insert = "@${node.user.id} "
+            replace(q.start, q.end, insert)
+            selection = TextRange(q.start + insert.length)
+        }
+    }
+    val onSendAction: () -> Unit = {
+        if (mentionActive) {
+            insertMention(suggestions.first())
+        } else if (canSend) {
+            onSendMessage()
+        }
+    }
+
+    var isFocused by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (mentionActive) {
+            MentionSuggestions(suggestions = suggestions, onPick = ::insertMention)
+        }
+        OutlinedTextField(
+            modifier =
+            Modifier.fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .onFocusChanged { isFocused = it.isFocused }
+                .onKeyEvent { keyEvent ->
+                    val isEnterNoShift = keyEvent.key == Key.Enter && !keyEvent.isShiftPressed
+                    if (isEnterNoShift) {
+                        if (keyEvent.type == KeyEventType.KeyUp) onSendAction()
+                        true // consume both KeyDown and KeyUp to prevent newline insertion
                     } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.End,
-                )
+                        false
+                    }
+                },
+            state = textFieldState,
+            outputTransformation = mentionOutput,
+            lineLimits = TextFieldLineLimits.MultiLine(1, MAX_LINES),
+            label = { Text(stringResource(Res.string.message_input_label)) },
+            enabled = isEnabled,
+            shape = RoundedCornerShape(ROUNDED_CORNER_PERCENT.toFloat()),
+            isError = isOverLimit,
+            placeholder = { Text(stringResource(Res.string.type_a_message)) },
+            keyboardOptions =
+            KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Send),
+            onKeyboardAction = { onSendAction() },
+            supportingText = {
+                if (isEnabled) { // Only show supporting text if input is enabled
+                    Text(
+                        text = "$currentByteLength/$maxByteSize",
+                        style = MaterialTheme.typography.bodySmall,
+                        color =
+                        if (isOverLimit) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End,
+                    )
+                }
+            },
+            // Direct byte limiting via inputTransformation in TextFieldState is complex.
+            // The current approach (show error, disable send) is generally preferred for UX.
+            // If strict real-time byte trimming is required, it needs careful handling of
+            // cursor position and multi-byte characters, likely outside simple inputTransformation.
+            trailingIcon = {
+                IconButton(onClick = onSendAction, enabled = canSend || mentionActive) {
+                    Icon(imageVector = MeshtasticIcons.Send, contentDescription = stringResource(Res.string.send))
+                }
+            },
+        )
+        // Markdown formatting toolbar — shown once the field is focused and holds enough text to format (iOS parity).
+        if (isEnabled && isFocused && currentText.length >= FORMATTING_TOOLBAR_MIN_CHARS) {
+            FormattingToolbar(state = textFieldState, modifier = Modifier.padding(horizontal = 8.dp))
+        }
+    }
+}
+
+@Composable
+private fun MentionSuggestions(suggestions: List<Node>, onPick: (Node) -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        tonalElevation = 3.dp,
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Column {
+            suggestions.forEach { node ->
+                Row(
+                    modifier =
+                    Modifier.fillMaxWidth().clickable { onPick(node) }.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = node.user.short_name,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = node.user.long_name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-        },
-        // Direct byte limiting via inputTransformation in TextFieldState is complex.
-        // The current approach (show error, disable send) is generally preferred for UX.
-        // If strict real-time byte trimming is required, it needs careful handling of
-        // cursor position and multi-byte characters, likely outside simple inputTransformation.
-        trailingIcon = {
-            IconButton(onClick = { if (canSend) onSendMessage() }, enabled = canSend) {
-                Icon(imageVector = MeshtasticIcons.Send, contentDescription = stringResource(Res.string.send))
-            }
-        },
-    )
+        }
+    }
 }
 
 @PreviewLightDark
@@ -564,6 +738,7 @@ fun MessageInputPreview() {
                 MessageInput(
                     isEnabled = true,
                     isHomoglyphEncodingEnabled = false,
+                    nodes = emptyList(),
                     textFieldState = rememberTextFieldState("Hello"),
                     onSendMessage = {},
                 )
@@ -571,6 +746,7 @@ fun MessageInputPreview() {
                 MessageInput(
                     isEnabled = false,
                     isHomoglyphEncodingEnabled = false,
+                    nodes = emptyList(),
                     textFieldState = rememberTextFieldState("Disabled"),
                     onSendMessage = {},
                 )
@@ -578,6 +754,7 @@ fun MessageInputPreview() {
                 MessageInput(
                     isEnabled = true,
                     isHomoglyphEncodingEnabled = false,
+                    nodes = emptyList(),
                     textFieldState =
                     rememberTextFieldState(
                         "A very long message that might exceed the byte limit " +
@@ -591,6 +768,7 @@ fun MessageInputPreview() {
                 MessageInput(
                     isEnabled = true,
                     isHomoglyphEncodingEnabled = false,
+                    nodes = emptyList(),
                     textFieldState = rememberTextFieldState("こんにちは世界"), // Hello World in Japanese
                     onSendMessage = {},
                     maxByteSize = 10,

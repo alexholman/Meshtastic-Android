@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -40,6 +41,7 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.util.MeshDataMapper
 import org.meshtastic.core.repository.AdminPacketHandler
+import org.meshtastic.core.repository.MeshBeaconPrefs
 import org.meshtastic.core.repository.MeshBeaconRepository
 import org.meshtastic.core.repository.MeshNotificationManager
 import org.meshtastic.core.repository.MessageFilter
@@ -55,6 +57,7 @@ import org.meshtastic.core.repository.StoreForwardPacketHandler
 import org.meshtastic.core.repository.TelemetryPacketHandler
 import org.meshtastic.core.repository.TracerouteHandler
 import org.meshtastic.core.repository.TrackingPrefs
+import org.meshtastic.core.testing.FakeNotificationPrefs
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.ChannelSettings
 import org.meshtastic.proto.Data
@@ -93,7 +96,6 @@ class MeshDataHandlerTest {
     private val telemetryHandler: TelemetryPacketHandler = mock(MockMode.autofill)
     private val adminPacketHandler: AdminPacketHandler = mock(MockMode.autofill)
     private val trackingPrefs: TrackingPrefs = mock(MockMode.autofill)
-    private val meshBeaconRepository = MeshBeaconRepository()
 
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
@@ -102,6 +104,18 @@ class MeshDataHandlerTest {
     // live in the runTest scope (that would trip UncompletedCoroutinesError). Shares the dispatcher so advanceUntilIdle
     // still drives it; cancelled in tearDown.
     private val geofenceScope = CoroutineScope(testDispatcher)
+
+    // Real repository over an in-memory prefs fake — its persistence write-through is exercised without a DataStore.
+    private val fakeBeaconPrefs =
+        object : MeshBeaconPrefs {
+            private val flow = MutableStateFlow<List<String>>(emptyList())
+            override val storedBeacons: StateFlow<List<String>> = flow
+
+            override fun setStoredBeacons(records: List<String>) {
+                flow.value = records
+            }
+        }
+    private val meshBeaconRepository = MeshBeaconRepository(fakeBeaconPrefs, geofenceScope)
 
     @AfterTest
     fun tearDown() {
@@ -136,6 +150,7 @@ class MeshDataHandlerTest {
                     nodeManager = nodeManager,
                     serviceNotifications = serviceNotifications,
                     crossingStore = GeofenceCrossingStore(),
+                    notificationPrefs = FakeNotificationPrefs(),
                     scope = geofenceScope,
                 ),
                 // TrackedNodeMonitor is likewise a final @Single — use a real one; with no tracked nodes
@@ -425,6 +440,23 @@ class MeshDataHandlerTest {
                 bytes = beacon.encode().toByteString(),
                 dataType = PortNum.MESH_BEACON_APP.value,
             )
+
+        handler.handleReceivedData(packet, 123)
+
+        assertEquals(0, meshBeaconRepository.offers.value.size)
+    }
+
+    @Test
+    fun `our own mesh beacon is ignored`() {
+        // Spec FR-001: ignore beacons from the scanning node itself (else a listen+broadcast node self-notifies).
+        val beacon = MeshBeacon(message = "Join us", offer_channel = ChannelSettings(name = "PartyNet"))
+        val packet =
+            MeshPacket(
+                from = 123, // == myNodeNum below
+                decoded = Data(portnum = PortNum.MESH_BEACON_APP, payload = beacon.encode().toByteString()),
+            )
+        every { dataMapper.toDataPacket(packet) } returns
+            DataPacket(from = "!self", bytes = beacon.encode().toByteString(), dataType = PortNum.MESH_BEACON_APP.value)
 
         handler.handleReceivedData(packet, 123)
 
@@ -779,5 +811,65 @@ class MeshDataHandlerTest {
         advanceUntilIdle()
 
         verifySuspend { packetRepository.insert(any(), 123, any(), any(), any(), filtered = true) }
+    }
+
+    // --- Mention / mute interaction (meshtastic/design#21) ---
+
+    private val myId = "!abcd1234"
+
+    private fun mentionPacket() = MeshPacket(
+        id = 101,
+        from = 456,
+        decoded =
+        Data(portnum = PortNum.TEXT_MESSAGE_APP, payload = "hey @$myId".encodeToByteArray().toByteString()),
+    )
+
+    private fun mentionDataPacket() = DataPacket(
+        id = 101,
+        from = "!remote",
+        to = NodeAddress.ID_BROADCAST,
+        bytes = "hey @$myId".encodeToByteArray().toByteString(),
+        dataType = PortNum.TEXT_MESSAGE_APP.value,
+    )
+
+    @Test
+    fun `mention from a muted node does not notify`() = testScope.runTest {
+        val packet = mentionPacket()
+        every { dataMapper.toDataPacket(packet) } returns mentionDataPacket()
+        everySuspend { packetRepository.findPacketsWithId(101) } returns emptyList()
+        everySuspend { packetRepository.getContactSettings(any()) } returns ContactSettings(contactKey = "test")
+        every { messageFilter.shouldFilter(any(), any()) } returns false
+        every { nodeManager.getMyId() } returns myId
+        // Node mute is authoritative: a mention must NOT break through it.
+        every { nodeManager.getNodeById("!remote") } returns
+            Node(num = 456, user = User(id = "!remote", long_name = "Remote User"), isMuted = true)
+
+        handler.handleReceivedData(packet, 123)
+        advanceUntilIdle()
+
+        verifySuspend(mode = dev.mokkery.verify.VerifyMode.not) {
+            serviceNotifications.updateMessageNotification(any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `mention from an unmuted node in a muted channel still notifies`() = testScope.runTest {
+        val packet = mentionPacket()
+        every { dataMapper.toDataPacket(packet) } returns mentionDataPacket()
+        everySuspend { packetRepository.findPacketsWithId(101) } returns emptyList()
+        // Channel/conversation muted — a mention breaks through it (design#21).
+        everySuspend { packetRepository.getContactSettings(any()) } returns
+            ContactSettings(contactKey = "test", isMuted = true)
+        every { messageFilter.shouldFilter(any(), any()) } returns false
+        every { nodeManager.getMyId() } returns myId
+        every { nodeManager.getNodeById("!remote") } returns
+            Node(num = 456, user = User(id = "!remote", long_name = "Remote User"))
+
+        handler.handleReceivedData(packet, 123)
+        advanceUntilIdle()
+
+        verifySuspend {
+            serviceNotifications.updateMessageNotification(any(), any(), any(), any(), any(), isSilent = false)
+        }
     }
 }

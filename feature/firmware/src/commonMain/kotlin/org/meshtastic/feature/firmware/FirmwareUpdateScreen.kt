@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -68,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -92,9 +94,14 @@ import org.meshtastic.core.resources.back
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.chirpy
 import org.meshtastic.core.resources.dont_show_again_for_device
+import org.meshtastic.core.resources.firmware_recovery_button
+import org.meshtastic.core.resources.firmware_recovery_explanation
 import org.meshtastic.core.resources.firmware_update_almost_there
 import org.meshtastic.core.resources.firmware_update_alpha
 import org.meshtastic.core.resources.firmware_update_checking
+import org.meshtastic.core.resources.firmware_update_confirm_file_button
+import org.meshtastic.core.resources.firmware_update_confirm_file_message
+import org.meshtastic.core.resources.firmware_update_confirm_file_title
 import org.meshtastic.core.resources.firmware_update_currently_installed
 import org.meshtastic.core.resources.firmware_update_device
 import org.meshtastic.core.resources.firmware_update_disclaimer_chirpy_says
@@ -109,6 +116,7 @@ import org.meshtastic.core.resources.firmware_update_keep_device_close
 import org.meshtastic.core.resources.firmware_update_latest
 import org.meshtastic.core.resources.firmware_update_local_file
 import org.meshtastic.core.resources.firmware_update_method_detail
+import org.meshtastic.core.resources.firmware_update_nightly
 import org.meshtastic.core.resources.firmware_update_rak4631_bootloader_hint
 import org.meshtastic.core.resources.firmware_update_release_notes
 import org.meshtastic.core.resources.firmware_update_retry
@@ -143,7 +151,6 @@ import org.meshtastic.core.ui.icon.Dangerous
 import org.meshtastic.core.ui.icon.Folder
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Refresh
-import org.meshtastic.core.ui.icon.SystemUpdate
 import org.meshtastic.core.ui.icon.Usb
 import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.core.ui.icon.Wifi
@@ -170,11 +177,13 @@ fun FirmwareUpdateScreen(onNavigateUp: () -> Unit, viewModel: FirmwareUpdateView
     val deviceHardware by viewModel.deviceHardware.collectAsStateWithLifecycle()
     val currentVersion by viewModel.currentFirmwareVersion.collectAsStateWithLifecycle()
     val selectedRelease by viewModel.selectedRelease.collectAsStateWithLifecycle()
+    val pendingLocalFirmwareFile by viewModel.pendingLocalFirmwareFile.collectAsStateWithLifecycle()
+    val nightlyUnlocked by viewModel.nightlyUnlocked.collectAsStateWithLifecycle()
 
     var showExitConfirmation by remember { mutableStateOf(false) }
 
     val filePickerLauncher = rememberOpenFileLauncher { uri: CommonUri? ->
-        uri?.let { viewModel.startUpdateFromFile(it) }
+        uri?.let { viewModel.prepareLocalFirmwareFile(it) }
     }
 
     val saveFileLauncher = rememberSaveFileLauncher { uri -> viewModel.saveDfuFile(uri) }
@@ -190,6 +199,8 @@ fun FirmwareUpdateScreen(onNavigateUp: () -> Unit, viewModel: FirmwareUpdateView
                     }
                 },
                 onSaveFile = { fileName -> saveFileLauncher(fileName, "application/octet-stream") },
+                onConfirmLocalFile = viewModel::confirmLocalFirmwareFile,
+                onDismissLocalFile = viewModel::dismissLocalFirmwareFile,
                 onRetry = viewModel::checkForUpdates,
                 onCancel = { showExitConfirmation = true },
                 onDone = { onNavigateUp() },
@@ -221,15 +232,67 @@ fun FirmwareUpdateScreen(onNavigateUp: () -> Unit, viewModel: FirmwareUpdateView
         )
     }
 
+    pendingLocalFirmwareFile?.let { pendingFile ->
+        LocalFirmwareFileConfirmationDialog(
+            pendingFile = pendingFile,
+            onConfirm = actions.onConfirmLocalFile,
+            onDismiss = actions.onDismissLocalFile,
+        )
+    }
+
     FirmwareUpdateScaffold(
         modifier = modifier,
         onNavigateUp = onNavigateUp,
         state = state,
         selectedReleaseType = selectedReleaseType,
+        showNightly = nightlyUnlocked,
         actions = actions,
         deviceHardware = deviceHardware,
         currentVersion = currentVersion,
         selectedRelease = selectedRelease,
+    )
+}
+
+@Composable
+private fun LocalFirmwareFileConfirmationDialog(
+    pendingFile: PendingLocalFirmwareFile,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    MeshtasticDialog(
+        onDismiss = onDismiss,
+        title = stringResource(Res.string.firmware_update_confirm_file_title),
+        confirmText = stringResource(Res.string.firmware_update_confirm_file_button),
+        onConfirm = onConfirm,
+        dismissText = stringResource(Res.string.cancel),
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(Res.string.firmware_update_confirm_file_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(12.dp))
+                SelectionContainer {
+                    Text(
+                        text = pendingFile.fileName,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = stringResource(Res.string.firmware_update_device, pendingFile.deviceName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = stringResource(Res.string.firmware_update_target, pendingFile.platformioTarget),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
     )
 }
 
@@ -239,6 +302,7 @@ private fun FirmwareUpdateScaffold(
     onNavigateUp: () -> Unit,
     state: FirmwareUpdateState,
     selectedReleaseType: FirmwareReleaseType,
+    showNightly: Boolean,
     actions: FirmwareUpdateActions,
     deviceHardware: DeviceHardware?,
     currentVersion: String?,
@@ -269,14 +333,17 @@ private fun FirmwareUpdateScaffold(
         ) {
             if (deviceHardware != null) {
                 Spacer(Modifier.height(16.dp))
-                AnimatedVisibility(
-                    visible =
-                    state is FirmwareUpdateState.Ready ||
-                        state is FirmwareUpdateState.Idle ||
-                        state is FirmwareUpdateState.Checking,
-                ) {
+                // Recovery flashes the stored channel's current release, so the channel picker would mislead.
+                val showReleaseSelector =
+                    (
+                        state is FirmwareUpdateState.Ready ||
+                            state is FirmwareUpdateState.Idle ||
+                            state is FirmwareUpdateState.Checking
+                        ) &&
+                        (state as? FirmwareUpdateState.Ready)?.isRecovery != true
+                AnimatedVisibility(visible = showReleaseSelector) {
                     Column {
-                        ReleaseTypeSelector(selectedReleaseType, actions.onReleaseTypeSelect)
+                        ReleaseTypeSelector(selectedReleaseType, showNightly, actions.onReleaseTypeSelect)
                         Spacer(Modifier.height(16.dp))
                     }
                 }
@@ -408,6 +475,16 @@ private fun ReadyState(
         Spacer(Modifier.height(16.dp))
     }
 
+    if (state.isRecovery) {
+        Text(
+            text = stringResource(Res.string.firmware_recovery_explanation),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(16.dp))
+    }
+
     Spacer(Modifier.height(16.dp))
 
     if (selectedReleaseType == FirmwareReleaseType.LOCAL) {
@@ -447,16 +524,19 @@ private fun ReadyState(
                     FirmwareUpdateMethod.Ble -> MeshtasticIcons.Bluetooth
                     FirmwareUpdateMethod.Usb -> MeshtasticIcons.Usb
                     FirmwareUpdateMethod.Wifi -> MeshtasticIcons.Wifi
-                    else -> MeshtasticIcons.SystemUpdate
                 },
                 contentDescription = null,
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                stringResource(
-                    resource = Res.string.firmware_update_method_detail,
-                    stringResource(state.updateMethod.description),
-                ),
+                if (state.isRecovery) {
+                    stringResource(Res.string.firmware_recovery_button)
+                } else {
+                    stringResource(
+                        resource = Res.string.firmware_update_method_detail,
+                        stringResource(state.updateMethod.description),
+                    )
+                },
                 style = ButtonDefaults.textStyleFor(largeHeight),
             )
         }
@@ -691,29 +771,25 @@ private fun BootloaderWarningCard(deviceHardware: DeviceHardware, onDismissForDe
 @Composable
 private fun ReleaseTypeSelector(
     selectedReleaseType: FirmwareReleaseType,
+    showNightly: Boolean,
     onReleaseTypeSelect: (FirmwareReleaseType) -> Unit,
 ) {
+    val types = buildList {
+        add(FirmwareReleaseType.STABLE to Res.string.firmware_update_stable)
+        add(FirmwareReleaseType.ALPHA to Res.string.firmware_update_alpha)
+        // Hidden behind the hidden-features unlock, mirroring the web flasher's konami-gated nightly.
+        if (showNightly) add(FirmwareReleaseType.NIGHTLY to Res.string.firmware_update_nightly)
+        add(FirmwareReleaseType.LOCAL to Res.string.firmware_update_local_file)
+    }
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        SegmentedButton(
-            selected = selectedReleaseType == FirmwareReleaseType.STABLE,
-            onClick = { onReleaseTypeSelect(FirmwareReleaseType.STABLE) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-        ) {
-            Text(stringResource(Res.string.firmware_update_stable))
-        }
-        SegmentedButton(
-            selected = selectedReleaseType == FirmwareReleaseType.ALPHA,
-            onClick = { onReleaseTypeSelect(FirmwareReleaseType.ALPHA) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-        ) {
-            Text(stringResource(Res.string.firmware_update_alpha))
-        }
-        SegmentedButton(
-            selected = selectedReleaseType == FirmwareReleaseType.LOCAL,
-            onClick = { onReleaseTypeSelect(FirmwareReleaseType.LOCAL) },
-            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-        ) {
-            Text(stringResource(Res.string.firmware_update_local_file))
+        types.forEachIndexed { index, (type, label) ->
+            SegmentedButton(
+                selected = selectedReleaseType == type,
+                onClick = { onReleaseTypeSelect(type) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
+            ) {
+                Text(stringResource(label))
+            }
         }
     }
 }

@@ -65,6 +65,7 @@
     <string name="delivery_confirmed">Livrezon konfime</string>
     <string name="desc_node_filter_clear">klarifye filtè nœud</string>
     <string name="description">Deskripsyon</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">Aparèy ap dòmi</string>
     <string name="direct_message">Mesaj dirèk</string>
@@ -84,7 +85,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Erè</string>
     <string name="error_duty_cycle">Limit sik devwa rive. Pa ka voye mesaj kounye a, tanpri eseye ankò pita.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Reyajiste nan faktori</string>
     <string name="fair">Mwayen</string>
     <!-- FILTER -->
@@ -93,6 +93,7 @@
     <string name="firmware_old">Mikwo lojisyèl radyo a twò ansyen pou li kominike ak aplikasyon sa a. Pou plis enfòmasyon sou sa, gade <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">gid enstalasyon mikwo lojisyèl nou an</a>.</string>
     <string name="firmware_too_old">Nouvo mizajou mikwo lojisyèl obligatwa.</string>
     <string name="firmware_update_failed">Mizajou echwe</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <string name="good">Bon</string>
     <!-- GPIO -->
@@ -106,6 +107,7 @@
     <string name="interval_unset">Pa konfigire</string>
     <string name="intro_show">Montre entwodiksyon</string>
     <string name="ip_address">Adrès IP:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -131,6 +133,8 @@
     <string name="map_subDescription">ang: %1$d° distans: %2$s</string>
     <string name="map_tile_download_estimate">Estimasyon telechajman tèk</string>
     <string name="map_tile_source">Sous Tèk</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Pa gen</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_new_nodes_notifications">Notifikasyon nouvo nœud</string>
     <string name="meshtastic_service_notifications">Notifikasyon sèvis</string>
@@ -138,7 +142,6 @@
     <string name="message">Mesaj</string>
     <string name="message_delivery_status">Eta livrezon mesaj</string>
     <string name="message_input_label">Mesaj</string>
-    <string name="message_status_enroute">Ap tann pou li rekonèt</string>
     <string name="message_status_queued">Kwen pou voye</string>
     <string name="module_settings">Konfigirasyon modil</string>
     <!-- MQTT -->
@@ -254,6 +257,7 @@
     <string name="shutdown">Fèmen</string>
     <string name="signal">Siynal</string>
     <string name="signal_quality">Kalite Siynal</string>
+    <!-- SITE -->
     <string name="snr_definition">Rapò Siynal sou Bri, yon mezi ki itilize nan kominikasyon pou mezire nivo siynal vle a kont nivo bri ki nan anviwònman an. Nan Meshtastic ak lòt sistèm san fil, yon SNR pi wo endike yon siynal pi klè ki ka amelyore fyab ak kalite transmisyon done.</string>
     <!-- TAK -->
     <string name="theme">Tèm</string>
@@ -265,6 +269,7 @@
     <string name="traceroute_diff">Hops vèsus %1$d Hops tounen %2$d</string>
     <string name="traceroute_direct">Direk</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="two_days">48 Èdtan</string>
     <!-- UNKNOWN -->
@@ -274,6 +279,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">atravè MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Efase pwen?</string>
     <string name="waypoint_edit">Modifye pwen</string>
     <string name="waypoint_new">Nouvo pwen</string>

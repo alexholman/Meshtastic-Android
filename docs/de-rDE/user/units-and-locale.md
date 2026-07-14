@@ -2,19 +2,19 @@
 title: Units, Measurement & Locale
 parent: User Guide
 nav_order: 16
-last_updated: 2026-05-12
+last_updated: 2026-07-08
 description: How the app formats temperature, distance, speed, and other measurements based on your device locale.
 ---
 
 # Units, Measurement & Locale
 
-The Meshtastic app automatically displays temperatures, distances, speeds, and times in the units your device is configured to use — no settings to change inside the app.
+Die Meshtastic-App zeigt Temperaturen, Entfernungen, Geschwindigkeiten und Zeiten automatisch in den Einheiten an, auf die Ihr Gerät konfiguriert ist – es sind keine Einstellungen innerhalb der App zu ändern.
 
 ---
 
 ## So funktioniert's
 
-Meshtastic radios always transmit data in **metric units** (meters, °C, km/h, hPa, etc.). When the app receives this data, it uses the `MetricFormatter` utility to convert and display values in whatever unit system your device's locale specifies.
+Meshtastic radios always transmit data in **metric units** (meters, °C, m/s, hPa, etc.). When the app receives this data, it converts and displays values in whatever unit system your device's locale specifies.
 
 On Android, your measurement preferences are determined by your system **Language & Region** settings. On Desktop (JVM), the app uses the JVM's default `Locale`.
 
@@ -88,7 +88,7 @@ Rainfall measurements (1-hour and 24-hour totals) are transmitted as **mm** and 
 
 Some units are international standards and are displayed the same way regardless of your locale:
 
-| Measurement                      | Unit                           | Why                                   |
+| Measurement                      | Einheit                        | Warum                                 |
 | -------------------------------- | ------------------------------ | ------------------------------------- |
 | Luftdruck                        | hPa                            | International meteorological standard |
 | Heading / bearing                | ° (degrees) | Universal navigation convention       |
@@ -105,7 +105,7 @@ All timestamps throughout the app — last heard, message times, telemetry logs,
 | **24-Hour Time** | Clock format     | 14:30 vs 2:30 PM |
 | **Date Format**  | Date ordering    | 09/05/2026 vs 05/09/2026                         |
 
-The app also uses **relative time** where it makes sense — for example, "5 min ago" or "2 hours ago" in the node list — which is automatically localised into your device language.
+Die App verwendet zudem **relative Zeitangaben**, wo dies sinnvoll ist – zum Beispiel „vor 5 Min.“ oder „vor 2 Stunden“ in der Knotenliste –, die automatisch in die Sprache Ihres Geräts lokalisiert werden.
 
 ## Changing Your Measurement System (Android)
 
@@ -115,12 +115,13 @@ On Android, your measurement system (metric vs imperial) is tied to your region 
 2. Change your **Region** or **Measurement units** preference
 3. Return to Meshtastic — values update immediately
 
-> 💡 **Tip:** The app uses `MetricFormatter` from `core:common`. All measurement formatting is handled by a shared KMP utility that respects your platform's locale. Developers adding new measurement displays should use `MetricFormatter` rather than hard-coding unit conversions.
+> 💡 **Tip:** All measurement formatting is handled centrally and respects your platform's locale, so units stay consistent everywhere in the app.
 
 ## Related Topics
 
 - [Node Metrics](node-metrics) — where temperature, distance, and sensor values are displayed
 - [Telemetry & Sensors](telemetry-and-sensors) — the sensors that produce these measurements
+- [Measurement & Formatting](../developer/measurement) — developer reference for the formatting utilities
 - [Settings — Radio & User](settings-radio-user) — region setting that drives unit selection
 
 ---

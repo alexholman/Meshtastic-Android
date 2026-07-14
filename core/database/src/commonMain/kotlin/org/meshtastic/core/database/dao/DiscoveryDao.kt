@@ -39,6 +39,10 @@ interface DiscoveryDao {
     @Query("SELECT * FROM discovery_session ORDER BY timestamp DESC")
     fun getAllSessions(): Flow<List<DiscoverySessionEntity>>
 
+    /** Snapshot used by DatabaseMerger to append a transport's discovery sessions to the unified DB. */
+    @Query("SELECT * FROM discovery_session")
+    suspend fun getAllSessionsSnapshot(): List<DiscoverySessionEntity>
+
     @Query("SELECT * FROM discovery_session WHERE id = :sessionId")
     suspend fun getSession(sessionId: Long): DiscoverySessionEntity?
 
@@ -50,6 +54,19 @@ interface DiscoveryDao {
 
     @Query("UPDATE discovery_session SET completion_status = 'interrupted' WHERE completion_status = 'in_progress'")
     suspend fun markInterruptedSessions()
+
+    /**
+     * The most recent session left mid-scan by a prior process (crash, BLE loss, or force-quit) for [deviceAddress] —
+     * "in_progress" if the process died before [markInterruptedSessions] ever ran, "interrupted" otherwise.
+     */
+    @Query(
+        """
+        SELECT * FROM discovery_session
+        WHERE device_address = :deviceAddress AND completion_status IN ('in_progress', 'interrupted')
+        ORDER BY timestamp DESC LIMIT 1
+        """,
+    )
+    suspend fun getInterruptedSession(deviceAddress: String): DiscoverySessionEntity?
 
     // endregion
 

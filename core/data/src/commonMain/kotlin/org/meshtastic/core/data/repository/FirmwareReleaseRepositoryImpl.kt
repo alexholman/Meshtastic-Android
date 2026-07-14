@@ -31,12 +31,17 @@ import org.meshtastic.core.data.util.staleWhileRevalidateFlow
 import org.meshtastic.core.database.entity.FirmwareRelease
 import org.meshtastic.core.database.entity.FirmwareReleaseEntity
 import org.meshtastic.core.database.entity.FirmwareReleaseType
+import org.meshtastic.core.database.entity.asDeviceVersion
+import org.meshtastic.core.database.entity.asEntity
 import org.meshtastic.core.database.entity.asExternalModel
 import org.meshtastic.core.di.CoroutineDispatchers
+import org.meshtastic.core.model.NetworkFirmwareRelease
 import org.meshtastic.core.model.NetworkFirmwareReleases
+import org.meshtastic.core.model.asFirmwareRelease
 import org.meshtastic.core.model.util.TimeConstants
 import org.meshtastic.core.network.FirmwareReleaseRemoteDataSource
 import org.meshtastic.core.repository.FirmwareReleaseRepository
+import kotlin.concurrent.Volatile
 
 @Single
 open class FirmwareReleaseRepositoryImpl(
@@ -50,21 +55,44 @@ open class FirmwareReleaseRepositoryImpl(
     /** Single-flight guard so concurrent collectors share one network refresh. */
     private val refreshMutex = Mutex()
 
+    /**
+     * Guards [bundledSnapshot] decode so concurrent collectors decode the bundled JSON at most once per process. The
+     * apply/skip decision itself is re-evaluated every time against the CURRENT active DB — the active Room database
+     * switches per selected device, so a one-shot seed gate would miss a freshly activated DB whose `firmware_release`
+     * rows are empty.
+     */
+    private val seedMutex = Mutex()
+
+    /** Decoded bundled snapshot cached for the process lifetime; the asset file never changes between launches. */
+    @Volatile private var bundledSnapshot: NetworkFirmwareReleases? = null
+
+    /** Set when the bundled asset is missing or un-decodable, so we don't retry on every collection. */
+    @Volatile private var bundleDecodeFailed = false
+
     override val stableRelease: Flow<FirmwareRelease?> = getLatestFirmware(FirmwareReleaseType.STABLE)
 
     override val alphaRelease: Flow<FirmwareRelease?> = getLatestFirmware(FirmwareReleaseType.ALPHA)
 
+    override val nightlyRelease: Flow<FirmwareRelease?> = getLatestFirmware(FirmwareReleaseType.NIGHTLY)
+
     private fun getLatestFirmware(releaseType: FirmwareReleaseType): Flow<FirmwareRelease?> = staleWhileRevalidateFlow(
         loadFromCache = {
             ensureSeeded()
-            localDataSource.getLatestRelease(releaseType)?.asExternalModel()
+            val latest = localDataSource.getLatestRelease(releaseType)?.asExternalModel()
+            // NIGHTLY is exempt from the below-stable guard: it is an explicit opt-in preview channel.
+            if (releaseType == FirmwareReleaseType.ALPHA) latest.notBelowStable() else latest
         },
         shouldFetch = { cached ->
             cached == null || localDataSource.getLatestRelease(releaseType)?.isStale() != false
         },
-        fetch = { singleFlightRefresh() },
+        // Nightly lives on meshtastic.github.io, not in the API's release list, so it refreshes on its own
+        // path — regular (locked) users never hit the nightly URL because only unlocked UI collects that flow.
+        fetch = { if (releaseType == FirmwareReleaseType.NIGHTLY) refreshNightly() else singleFlightRefresh() },
         context = dispatchers.default,
-        networkTimeoutMs = NETWORK_REFRESH_TIMEOUT_MS,
+        // No collector blocks on the fetch (cache is emitted first), so let the HttpClient's own
+        // timeout/retry policy bound it — api.meshtastic.org routinely takes 20-60s to serve this list,
+        // and a short deadline here cancels every refresh, pinning users to the bundled seed data.
+        networkTimeoutMs = null,
         tag = "FirmwareReleaseRepository",
     )
 
@@ -72,26 +100,95 @@ open class FirmwareReleaseRepositoryImpl(
         localDataSource.deleteAllFirmwareReleases()
     }
 
+    /**
+     * After a stable promotion the alpha channel lags behind stable — never offer a downgrade. Reads the cached stable
+     * row (every refresh writes both types together, so it is as fresh as the alpha row) rather than combining with
+     * [stableRelease], which would run a second revalidate pipeline — and potentially a duplicate network refresh — for
+     * every alpha collector.
+     */
+    private suspend fun FirmwareRelease?.notBelowStable(): FirmwareRelease? {
+        val stable = localDataSource.getLatestRelease(FirmwareReleaseType.STABLE)?.asExternalModel()
+        return if (this != null && stable != null && asDeviceVersion() < stable.asDeviceVersion()) stable else this
+    }
+
+    /**
+     * Applies the bundled snapshot per release type whenever it is newer than what is cached for that type — not just
+     * when the cache is empty. The bundle is refreshed weekly in CI, so an app update carries fresh data even for users
+     * whose network path to api.meshtastic.org chronically fails. The decoded snapshot is cached for the process; the
+     * apply/skip decision is re-evaluated every call against the CURRENT active DB, because that DB switches per
+     * selected device and a one-shot seed gate would skip a freshly activated DB whose `firmware_release` rows are
+     * empty. A cache that is already newer (from a successful network refresh) is never regressed, and a type the
+     * bundle doesn't ship is left untouched.
+     */
     private suspend fun ensureSeeded() {
-        if (!localDataSource.hasAnyEntries()) {
-            safeCatching {
-                Logger.d { "FirmwareReleaseRepository: seeding cache from bundled JSON" }
-                val jsonReleases =
-                    assetReader.decode<NetworkFirmwareReleases>("firmware_releases.json", json)
-                        ?: NetworkFirmwareReleases()
-                localDataSource.insertFirmwareReleases(jsonReleases.releases.stable, FirmwareReleaseType.STABLE)
-                localDataSource.insertFirmwareReleases(jsonReleases.releases.alpha, FirmwareReleaseType.ALPHA)
+        if (bundleDecodeFailed) return // don't retry the bundled asset on every collection once it has failed
+
+        // seedMutex guards only the decode + snapshot cache; the DB apply runs outside it (so concurrent
+        // collectors don't block on a Room write or on refreshMutex) and under refreshMutex (so it can't
+        // race singleFlightRefresh and overwrite fresher data that just arrived from the API).
+        val bundled =
+            seedMutex.withLock {
+                // Decode the bundled JSON once per process; the asset never changes between launches.
+                if (bundledSnapshot == null && !bundleDecodeFailed) {
+                    safeCatching { assetReader.decode<NetworkFirmwareReleases>("firmware_releases.json", json) }
+                        .onSuccess { snapshot -> bundledSnapshot = snapshot }
+                        .onFailure { e ->
+                            Logger.w(e) { "FirmwareReleaseRepository: failed to decode bundled JSON" }
+                            bundleDecodeFailed = true
+                        }
+                    // Decode returning null (asset missing) also stops further retries.
+                    if (bundledSnapshot == null && !bundleDecodeFailed) {
+                        Logger.w { "FirmwareReleaseRepository: no bundled releases available to seed from" }
+                        bundleDecodeFailed = true
+                    }
+                }
+                bundledSnapshot?.releases
+            } ?: return
+
+        safeCatching {
+            refreshMutex.withLock {
+                val toApply =
+                    listOf(FirmwareReleaseType.STABLE to bundled.stable, FirmwareReleaseType.ALPHA to bundled.alpha)
+                        .filter { (type, releases) -> isBundleNewerFor(type, releases) }
+                        .toMap()
+                if (toApply.isNotEmpty()) {
+                    Logger.i { "FirmwareReleaseRepository: applying bundled snapshot for ${toApply.keys}" }
+                    localDataSource.replaceFirmwareReleases(toApply)
+                }
             }
-                .onFailure { e -> Logger.w(e) { "FirmwareReleaseRepository: failed to seed cache from bundled JSON" } }
         }
+            .onFailure { e -> Logger.w(e) { "FirmwareReleaseRepository: failed to apply bundled snapshot" } }
+    }
+
+    /** True when [bundled] contains a release newer than anything cached for [type]. */
+    private suspend fun isBundleNewerFor(type: FirmwareReleaseType, bundled: List<NetworkFirmwareRelease>): Boolean {
+        val bundledNewest = bundled.maxOfOrNull { it.asEntity(type).asDeviceVersion() } ?: return false
+        val cachedNewest = localDataSource.getLatestRelease(type)?.asDeviceVersion()
+        return cachedNewest == null || bundledNewest > cachedNewest
     }
 
     private suspend fun singleFlightRefresh() {
         refreshMutex.withLock {
             Logger.d { "FirmwareReleaseRepository: fetching from remote API" }
-            val networkReleases = remoteDataSource.getFirmwareReleases()
-            localDataSource.insertFirmwareReleases(networkReleases.releases.stable, FirmwareReleaseType.STABLE)
-            localDataSource.insertFirmwareReleases(networkReleases.releases.alpha, FirmwareReleaseType.ALPHA)
+            val releases = remoteDataSource.getFirmwareReleases().releases
+            if (releases.stable.isEmpty() && releases.alpha.isEmpty()) {
+                Logger.w { "FirmwareReleaseRepository: remote returned no releases; leaving cache untouched" }
+            } else {
+                // Replace rather than upsert so releases pulled or reclassified upstream don't linger as "latest".
+                localDataSource.replaceFirmwareReleases(
+                    mapOf(FirmwareReleaseType.STABLE to releases.stable, FirmwareReleaseType.ALPHA to releases.alpha),
+                )
+            }
+        }
+    }
+
+    private suspend fun refreshNightly() {
+        refreshMutex.withLock {
+            Logger.d { "FirmwareReleaseRepository: fetching nightly index" }
+            // A 404 (nothing currently published) returns null and clears any stale nightly row; transport and
+            // server errors throw before the write and leave the cache untouched.
+            val nightly = remoteDataSource.getNightlyFirmware()?.asFirmwareRelease()
+            localDataSource.replaceFirmwareReleases(mapOf(FirmwareReleaseType.NIGHTLY to listOfNotNull(nightly)))
         }
     }
 
@@ -99,8 +196,5 @@ open class FirmwareReleaseRepositoryImpl(
 
     companion object {
         private val CACHE_EXPIRATION_TIME_MS = TimeConstants.ONE_HOUR.inWholeMilliseconds
-
-        /** Maximum time to wait for the remote API before falling back to cached/bundled data. */
-        private const val NETWORK_REFRESH_TIMEOUT_MS = 5_000L
     }
 }

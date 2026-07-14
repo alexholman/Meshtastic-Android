@@ -12,6 +12,9 @@ on:
       run_coverage:
         type: boolean
         default: true
+      run_desktop_builds:
+        type: boolean
+        default: false
       run_desktop_flatpak_src:
         type: boolean
         default: false
@@ -93,6 +96,7 @@ jobs:
       contents: read
     timeout-minutes: 30
     needs: setup
+    if: inputs.run_lint == true
     env:
       VERSION_CODE: ${{ needs.setup.outputs.version_code }}
 
@@ -112,12 +116,7 @@ jobs:
           install_jetbrains_jdk: 'true'
 
       - name: Lint, Analysis & KMP Smoke Compile
-        if: inputs.run_lint == true
         run: ./gradlew spotlessCheck detekt androidApp:lintFdroidDebug androidApp:lintGoogleDebug core:barcode:lintFdroidDebug core:barcode:lintGoogleDebug kmpSmokeCompile -Pci=true --continue
-
-      - name: KMP Smoke Compile (lint skipped)
-        if: inputs.run_lint == false
-        run: ./gradlew kmpSmokeCompile -Pci=true --continue
 
   # ── Screenshot Test Validation ──────────────────────────────────────
   screenshot-check:
@@ -156,13 +155,14 @@ jobs:
           if-no-files-found: warn
 
   # ── Reproducible Build Verification ─────────────────────────────────
-  # Only runs on main push and merge-queue (not PRs) to keep PR feedback fast.
+  # Only runs in the merge queue (not PRs, to keep PR feedback fast; not main pushes,
+  # which are the same merge commit the queue just verified).
   rb-check:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 30
-    if: inputs.run_lint == true && (github.event_name == 'push' || github.event_name == 'merge_group')
+    if: inputs.run_lint == true && github.event_name == 'merge_group'
 
     steps:
       - name: Checkout code
@@ -488,6 +488,12 @@ jobs:
           gradle_encryption_key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache_read_only: ${{ needs.setup.outputs.cache_read_only }}
 
+      - name: Tag main-branch builds as -SNAPSHOT
+        if: github.event_name == 'push'
+        run: |
+          BASE=$(grep '^VERSION_NAME_BASE=' config.properties | cut -d'=' -f2)
+          echo "VERSION_NAME=${BASE}-SNAPSHOT" >> "$GITHUB_ENV"
+
       - name: Build Android APKs
         run: ./gradlew androidApp:assembleFdroidDebug androidApp:assembleGoogleDebug -Pci=true --parallel --configuration-cache --continue
 
@@ -538,7 +544,10 @@ jobs:
           install_jetbrains_jdk: 'true'
 
       - name: Build Desktop
-        run: ./gradlew :desktopApp:createDistributable -Pci=true
+        # proguardReleaseJars is included because it is otherwise only exercised by the
+        # release workflow: jlink tolerates a jmods-less JDK (JEP 493) but ProGuard does
+        # not, so a broken packaging JDK would surface at release time instead of here.
+        run: ./gradlew :desktopApp:createDistributable :desktopApp:proguardReleaseJars -Pci=true
 
       - name: Upload Desktop artifact
         if: ${{ inputs.upload_artifacts }}

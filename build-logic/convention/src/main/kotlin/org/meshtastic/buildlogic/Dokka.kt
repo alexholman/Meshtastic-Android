@@ -18,6 +18,7 @@ package org.meshtastic.buildlogic
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.project
 import org.jetbrains.dokka.gradle.DokkaExtension
 import java.net.URI
 
@@ -50,7 +51,8 @@ fun Project.configureDokka() {
 
                 // Standardized repo-root based source links
                 localDirectory.set(project.projectDir)
-                val relativePath = project.projectDir.relativeTo(rootProject.projectDir).path.replace("\\", "/")
+                val rootDir = project.isolated.rootProject.projectDirectory.asFile
+                val relativePath = project.projectDir.relativeTo(rootDir).path.replace("\\", "/")
                 remoteUrl.set(URI("https://github.com/meshtastic/Meshtastic-Android/blob/main/$relativePath"))
                 remoteLineSuffix.set("#L")
             }
@@ -73,5 +75,5 @@ fun Project.configureDokkaAggregation(subprojectPaths: List<String>) {
     // Add each subproject as a Dokka dependency using declared paths rather than
     // iterating live subproject objects. This avoids cross-project configuration
     // access and is compatible with Gradle Isolated Projects.
-    subprojectPaths.forEach { path -> dependencies.add("dokka", project(path)) }
+    subprojectPaths.forEach { path -> dependencies.add("dokka", dependencies.project(path)) }
 }

@@ -40,8 +40,8 @@ interface PacketRepository {
     /** Reactive flow of all conversation contacts, keyed by their contact identifier. */
     fun getContacts(): Flow<Map<String, DataPacket>>
 
-    /** Reactive paged flow of conversation contacts. */
-    fun getContactsPaged(): Flow<PagingData<DataPacket>>
+    /** Reactive paged flow of conversation contacts, each paired with its stored contact key. */
+    fun getContactsPaged(): Flow<PagingData<Pair<String, DataPacket>>>
 
     /** Returns the total number of messages in a conversation. */
     suspend fun getMessageCount(contact: String): Int
@@ -122,6 +122,12 @@ interface PacketRepository {
 
     /** Updates the identifier of a persisted packet. */
     suspend fun updateMessageId(d: DataPacket, id: Int)
+
+    /** Persists the on-device translation of a message and switches it to display the translation. */
+    suspend fun setMessageTranslation(uuid: Long, translatedText: String)
+
+    /** Toggles whether a translated message displays the translation or the original text. */
+    suspend fun setShowTranslated(uuid: Long, showTranslated: Boolean)
 
     /** Deletes messages by their database UUIDs. */
     suspend fun deleteMessages(uuidList: List<Long>)

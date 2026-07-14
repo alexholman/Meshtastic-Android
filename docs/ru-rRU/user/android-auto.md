@@ -2,8 +2,8 @@
 title: Android Auto
 parent: Руководство пользователя
 nav_order: 18
-last_updated: 2026-06-11
-description: Use Meshtastic hands-free on an Android Auto head unit — read messages aloud, reply by voice, and check nodes and mesh status while driving.
+last_updated: 2026-07-07
+description: Используй Meshtastic без рук на головном устройстве Android Auto — читай сообщения вслух, отвечай голосом и проверяй ноды и состояние сети, пока ты за рулем.
 aliases:
   - android-auto
   - car
@@ -13,42 +13,44 @@ aliases:
 
 # Android Auto
 
-Meshtastic integrates with Android Auto so you can stay in touch with your mesh while driving, without taking your hands off the wheel or your eyes off the road.
+Meshtastic интегрируется с Android Auto, так что ты можешь оставаться на связи со своей сетью, пока едешь, не отрывая рук от руля и глаз от дороги.
 
-> ⚠️ **Note:** Android Auto support is available on **Google-flavor Android builds only**. It is not included in the F-Droid build, and it is not available on Desktop or iOS.
+> ⚠️ **Примечание:** поддержка Android Auto доступна только на **Android-сборках от Google**. Она не включена в сборку F-Droid и недоступна на ПК или iOS.
+
+> ℹ️ **Что сегодня нового:** Сборка для Google Play предоставляет **только уведомления** для сообщений в машине — входящие сообщения объявляются на головном устройстве, а ответ даётся через его элементы управления уведомлениями. Полная вкладка **Сообщения / Ноды / Статус**, описанная ниже, является бета-версией, построенной на библиотеке Android Car App (шаблонный интерфейс Google для автомобилей в настоящее время ограничен закрытыми/внутренними треками Play), поэтому он появляется только в сборках, скомпилированных с `-PenableCarTemplates=true`. Остальная часть этой страницы документирует бета-тестирование.
 
 ## Обзор
 
-When your phone is connected to an Android Auto head unit (or the Desktop Head Unit emulator used for development), Meshtastic appears as a messaging app built with the Android Car App Library. The car interface presents a tabbed Home screen optimized for driving-safe, glanceable use:
+Когда твой телефон подключен к головному устройству Android Auto (или к эмулятору Desktop Head Unit, используемому для разработки), бета-версия показывает Meshtastic как приложение для обмена сообщениями, созданное с помощью библиотеки Android Car App, с вкладочной главной страницей, оптимизированной для безопасного вождения и удобного быстрого просмотра:
 
-- **Messages** — recent conversations, with hands-free reading and replies.
-- **Nodes** — the mesh node list, with a node-detail view.
-- **Status** — current connection and mesh status.
+- **Сообщения** — недавние разговоры с возможностью чтения и ответов без рук.
+- **Узлы** — список нод сети с подробным просмотром каждой ноды.
+- **Статус** — текущий статус подключения и сети.
 
-The car app does not add a new connection of its own. It uses the Meshtastic app's existing connection, node, and message state, so it reflects whatever your phone is already connected to.
+Приложение для машины само по себе не добавляет новое соединение. Оно использует уже существующее соединение, ноду и состояние сообщений в приложении Meshtastic, так что отображает то, к чему твой телефон уже подключен.
 
-> ⚠️ **Note:** Your phone must be connected to a Meshtastic radio for the car app to show live data. If the app is disconnected, the car screen reflects that disconnected state.
+> ⚠️ **Примечание:** твой телефон должен быть подключен к радиостанции Meshtastic, чтобы автомобильное приложение показывало данные в реальном времени. Если приложение отключено, экран автомобиля показывает отключенное состояние.
 
 ## Сообщения
 
-The Messages tab lists your recent conversations. While driving, you can:
+Вкладка «Сообщения» показывает твои недавние разговоры. За рулём ты можешь:
 
-- **Have messages read aloud** so you don't need to look at the screen.
-- **Reply by voice or text** using your head unit's reply control, dictating your response hands-free.
+- **Прослушивать сообщения вслух**, чтобы не приходилось смотреть на экран.
+- **Отвечай голосом или текстом** с помощью кнопки ответа на своей головной панели, диктуя свой ответ без рук.
 
 ## Ноды
 
-The Nodes tab shows your mesh node list in a car-friendly layout. Selecting a node opens a node-detail view with key information about that node. See [Nodes](nodes) for the full meaning of the information shown.
+Вкладка «Ноды» показывает список нод вашей сетки в удобном для машины формате. Выбор ноды открывает представление с подробной информацией об этой ноде. Смотри [Ноды](nodes), чтобы полностью понять информацию, показанную здесь.
 
-## Status
+## Статус
 
-The Status tab summarizes your current connection and mesh status at a glance — useful for confirming you're still connected to your radio without opening your phone.
+Вкладка «Статус» позволяет одним взглядом увидеть твоё текущее соединение и состояние сети — удобно, чтобы проверить, что ты всё ещё подключен к радиостанции, не открывая телефон.
 
 ## Связанные темы
 
-- [Messages & Channels](messages-and-channels) — full messaging features on your phone
-- [Nodes](nodes) — detailed node list and node-detail information
-- [Connections](connections) — how the app connects to your radio
+- [Сообщения и Каналы](messages-and-channels) — все функции обмена сообщениями на твоём телефоне
+- [Ноды](nodes) — подробный список нод и информация о каждой ноде
+- [Подключения](connections) — как приложение подключается к твоей радиостанции
 
 ---
 

@@ -32,6 +32,14 @@ object DatabaseConstants {
 
     const val LEGACY_DB_CLEANED_KEY: String = "legacy_db_cleaned"
 
+    // Cross-transport unification: map a device / node / transport address to the DB file its data lives in.
+    // Keys are dynamic (suffixed with the hex device id / node num / normalized address), mirroring the
+    // `db_last_used:` pattern. The device-id key is preferred; the node-num key is the legacy fallback because
+    // firmware 2.8 made node numbers unstable (renumbered on upgrade/erase/re-key).
+    const val DEVICE_DB_FOR_PREFIX: String = "device_db_for:"
+    const val NODE_DB_FOR_PREFIX: String = "node_db_for:"
+    const val ADDR_DB_FOR_PREFIX: String = "addr_db_for:"
+
     // Display/truncation and hash sizing for DB names
     const val DB_NAME_HASH_LEN: Int = 10
     const val DB_NAME_SEPARATOR_LEN: Int = 1

@@ -74,6 +74,7 @@
         <item quantity="other">Διαγραφή %1$s μηνυμάτων;</item>
     </plurals>
     <string name="description">Περιγραφή</string>
+    <!-- DESKTOP -->
     <string name="details">Λεπτομέρειες</string>
     <!-- DEVICE -->
     <string name="device">Συσκευή</string>
@@ -97,7 +98,6 @@
     <string name="encryption_psk">Κοινόχρηστο Κλειδί</string>
     <!-- ENVIRONMENT -->
     <string name="error">Σφάλμα</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Επαναφορά εργοστασιακών ρυθμίσεων</string>
     <string name="favorite">Αγαπημένο</string>
     <!-- FILTER -->
@@ -106,6 +106,7 @@
     <string name="firmware_old">Το λογισμικό του πομποδεκτη είναι πολύ παλιό για να μιλήσει σε αυτήν την εφαρμογή. Για περισσότερες πληροφορίες σχετικά με αυτό ανατρέξτε στον <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">οδηγό εγκατάστασης του Firmware</a>.</string>
     <string name="firmware_too_old">Απαιτείται ενημέρωση υλικολογισμικού.</string>
     <string name="firmware_update_failed">Αποτυχία ενημέρωσης</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <!-- GPIO -->
     <string name="green">Πράσινο</string>
@@ -118,6 +119,7 @@
     <string name="ip">IP</string>
     <string name="ip_address">IP διεύθυνση:</string>
     <string name="ip_port">Θύρα:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="latitude">Γεωγραφικό Πλάτος</string>
     <!-- LOAD -->
@@ -141,13 +143,13 @@
     <string name="map_purge_success">Η προσωρινή μνήμη SQL καθαρίστηκε για %1$s</string>
     <string name="map_select_download_region">Επιλογή περιοχής λήψης</string>
     <string name="map_start_download">Εκκίνηση Λήψης</string>
+    <!-- MESH -->
     <!-- MESHTASTIC -->
     <string name="meshtastic_service_notifications">Ειδοποιήσεις Υπηρεσίας</string>
     <!-- MESSAGE -->
     <string name="message">Μήνυμα</string>
     <string name="message_delivery_status">Κατάσταση παράδοσης μηνύματος</string>
     <string name="message_input_label">Μήνυμα</string>
-    <string name="message_status_enroute">Αναμονή για αναγνώριση</string>
     <string name="messages">Μηνύματα</string>
     <string name="module_settings">Ρυθμίσεις πρόσθετου</string>
     <!-- MQTT -->
@@ -237,6 +239,8 @@
     <string name="share">Κοινοποίηση</string>
     <!-- SHOW -->
     <string name="shutdown">Τερματισμός λειτουργίας</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Οθόνη</string>
     <string name="ssid">SSID</string>
     <!-- TAK -->
     <string name="tak_team_blue">Μπλε</string>
@@ -252,6 +256,7 @@
     <string name="traceroute">Traceroute</string>
     <string name="traceroute_log">Traceroute</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
     <string name="transport_mqtt">MQTT</string>
@@ -266,6 +271,7 @@
     <string name="username">Όνομα χρήστη</string>
     <string name="via_mqtt">μέσω MQTT</string>
     <string name="voltage">Τάση</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Διαγραφή σημείου πορείας;</string>
     <string name="waypoint_edit">Επεξεργασία σημείου διαδρομής</string>
     <string name="waypoint_new">Νέο σημείο πορείας</string>

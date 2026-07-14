@@ -132,6 +132,7 @@
     <string name="delivery_confirmed">Испорука потврђена</string>
     <string name="desc_node_filter_clear">očisti filter čvorova</string>
     <string name="description">Опис</string>
+    <!-- DESKTOP -->
     <string name="detection_sensor">Сензор откривања</string>
     <string name="detection_sensor_config">Подешавања ензора откривања</string>
     <!-- DEVICE -->
@@ -140,6 +141,7 @@
     <string name="device_metrics_log">Метрика уређаја</string>
     <string name="device_sleeping">Uređaj je u stanju spavanja</string>
     <string name="direct_message">Директне поруке</string>
+    <string name="direct_messages">Директне поруке</string>
     <string name="disconnect">Прекините везу</string>
     <string name="disconnected">Raskačeno</string>
     <!-- DISCOVERY -->
@@ -151,6 +153,7 @@
     <!-- DISTANCE -->
     <string name="distance">Udaljenost</string>
     <!-- DOC -->
+    <string name="doc_title_debug_logs">Дебаг логови</string>
     <string name="doc_title_firmware">Ажурирања фирмвера</string>
     <string name="doc_title_nodes">Чворови</string>
     <string name="double_tap_as_button_press">Двоструки додир као дугме</string>
@@ -168,7 +171,6 @@
     <string name="error_duty_cycle">Достигнут је лимит циклуса рада. Не могу слати поруке тренутно, молимо вас покушајте касније.</string>
     <string name="ethernet_config">Етернет опције</string>
     <string name="expires">Истиче</string>
-    <!-- EXPORT -->
     <string name="external_notification">Спољна обавештења</string>
     <string name="external_notification_config">Подешавање спољних обавештења</string>
     <string name="factory_reset">Рестартовање на фабричка подешавања</string>
@@ -187,6 +189,7 @@
     <string name="firmware_update_no_device">Нема повезаних уређаја</string>
     <string name="firmware_update_release_notes">Белешке о издању</string>
     <string name="fixed_position">Фиксна локација</string>
+    <!-- FORMAT -->
     <string name="frequency_slot">Фреквенцијски слот</string>
     <string name="friendly_name">Пријатељски назив</string>
     <string name="generate_qr_code">Генерисање QR кода</string>
@@ -217,6 +220,7 @@
     <string name="interval_unset">Ukloni</string>
     <string name="intro_show">Прикажи упутства</string>
     <string name="ip_address">IP adresa: </string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="label_long_fast">Дугачки домет - Брзо</string>
     <string name="label_long_moderate">Дугачки домет - Умерено</string>
@@ -262,6 +266,9 @@
     <string name="map_type_hybrid">Хибридни</string>
     <string name="map_type_satellite">Сателит</string>
     <string name="max">Maksimum</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Отпусти</string>
+    <string name="mesh_beacon_preset_none">Bez</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_alerts_notifications">Обавештења о упозорењима</string>
     <string name="meshtastic_low_battery_notifications">Нотификације о ниском нивоу батерије</string>
@@ -272,7 +279,6 @@
     <string name="message">Порука</string>
     <string name="message_delivery_status">Status prijema poruke</string>
     <string name="message_input_label">Порука</string>
-    <string name="message_status_enroute">Čeka na potvrdu</string>
     <string name="message_status_queued">U redu za slanje</string>
     <string name="message_status_unknown">Непознато</string>
     <string name="messages">Поруке</string>
@@ -444,6 +450,8 @@
     <string name="shutdown">Искључи</string>
     <string name="signal">Signal</string>
     <string name="signal_quality">Kvalitet signala</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Приказ</string>
     <string name="smart_position">Паметно позиционирање</string>
     <string name="snr">SNR</string>
     <string name="snr_definition">Однос сигнал/шум SNR је мера која се користи у комуникацијама за квантитативно одређивање нивоа жељеног сигнала у односу на ниво позадинског шума. У Мештастик и другим бежичним системима, већи SNR указује на јаснији сигнал који може побољшати поузданост и квалитет преноса података.</string>
@@ -477,6 +485,7 @@
     <string name="traceroute_log">Праћење руте</string>
     <string name="traceroute_no_response">Нема одговора</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="transport_ble">БЛЕ</string>
     <string name="transport_lora">LoRA</string>
@@ -500,6 +509,7 @@
     <string name="username">Корисничко име</string>
     <string name="via_mqtt">preko MQTT-a</string>
     <string name="voltage">Напон</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Обрисати тачку путање?</string>
     <string name="waypoint_edit">Измените тачку путање</string>
     <string name="waypoint_new">Нова тачка путање</string>

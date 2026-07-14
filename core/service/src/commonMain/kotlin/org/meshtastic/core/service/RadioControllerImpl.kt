@@ -19,6 +19,9 @@ package org.meshtastic.core.service
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import org.meshtastic.core.common.database.DatabaseManager
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.repository.AdminController
@@ -87,6 +90,22 @@ class RadioControllerImpl(
     NodeController by NodeControllerImpl(commandSender, nodeManager, packetRepository, scope),
     QueryController by QueryControllerImpl(commandSender, nodeManager, uiPrefs) {
 
+    init {
+        // Unify per-device databases across transports. When the handshake reports our node number, tell the
+        // DatabaseManager to claim (or merge into) that device's canonical DB, so the same device reached over BLE,
+        // TCP, or USB shares one stored history. The hardware device id (when reported) is the durable claim key —
+        // firmware 2.8 renumbers devices (num = crc32(public_key)) on upgrade/erase/re-key — with the node number as
+        // fallback. Keyed on (address, node, device) so a second transport for the same device re-fires even though
+        // the identity itself is unchanged.
+        scope.launch {
+            combine(meshPrefs.deviceAddress, nodeManager.myNodeNum, nodeManager.myDeviceId) { address, nodeNum, devId ->
+                Triple(address, nodeNum, devId)
+            }
+                .distinctUntilChanged()
+                .collect { (_, nodeNum, deviceId) -> nodeNum?.let { databaseManager.associateDevice(it, deviceId) } }
+        }
+    }
+
     // ── Connection State ────────────────────────────────────────────────────
 
     override val connectionState: StateFlow<ConnectionState>
@@ -117,6 +136,10 @@ class RadioControllerImpl(
         switchDevice(address)
         radioInterfaceService.setDeviceAddress(address)
         onDeviceAddressChanged?.invoke()
+    }
+
+    override fun requestGattCacheInvalidationOnNextConnect() {
+        radioInterfaceService.requestGattCacheInvalidationOnNextConnect()
     }
 
     private suspend fun switchDevice(deviceAddr: String) {

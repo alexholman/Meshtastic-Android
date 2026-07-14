@@ -16,8 +16,11 @@
  */
 package org.meshtastic.core.repository
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import org.meshtastic.core.model.DeviceType
+import org.meshtastic.core.model.NodeSortOption
 
 /** Reactive interface for analytics-related preferences. */
 interface AnalyticsPrefs {
@@ -124,6 +127,13 @@ interface UiPrefs {
 
     fun setShowQuickChat(show: Boolean)
 
+    /**
+     * Whether to apply an event edition's ambient theme (accent wash + custom typeface) app-wide (opt-out; default on).
+     */
+    val eventThemeEnabled: StateFlow<Boolean>
+
+    fun setEventThemeEnabled(enabled: Boolean)
+
     /** Whether BLE scanning should auto-start when the Connections screen is opened. */
     val bleAutoScan: StateFlow<Boolean>
 
@@ -187,6 +197,10 @@ interface UiPrefs {
     fun setShouldShowTelemetry(value: Boolean)
 }
 
+/** Maps the persisted [UiPrefs.nodeSort] ordinal to its [NodeSortOption], the single source every consumer shares. */
+val UiPrefs.nodeSortOption: Flow<NodeSortOption>
+    get() = nodeSort.map { NodeSortOption.fromOrdinal(it) }
+
 /** Reactive interface for notification preferences. */
 interface NotificationPrefs {
     val messagesEnabled: StateFlow<Boolean>
@@ -204,6 +218,14 @@ interface NotificationPrefs {
     val lowBatteryEnabled: StateFlow<Boolean>
 
     fun setLowBatteryEnabled(enabled: Boolean)
+
+    /**
+     * Waypoint ids of foreign (not locally-created) geofences the user has opted in to receiving crossing alerts for.
+     * Geofences are mesh-broadcast, so by default only the creator is alerted; this is the per-geofence opt-in.
+     */
+    val geofenceAlertOptIns: StateFlow<Set<Int>>
+
+    fun setGeofenceAlertOptIn(waypointId: Int, enabled: Boolean)
 }
 
 /** Reactive interface for tracking-map preferences (tracked nodes, reacquisition alerts, GPX overlays). */
@@ -253,6 +275,24 @@ interface MapPrefs {
     val lastHeardTrackFilter: StateFlow<Long>
 
     fun setLastHeardTrackFilter(seconds: Long)
+
+    /** URIs of imported map layers the user has toggled off; a layer is visible unless its URI is in this set. */
+    val hiddenLayerUrls: StateFlow<Set<String>>
+
+    /** Atomically mutate [hiddenLayerUrls]; [transform] runs against the persisted value, avoiding lost updates. */
+    fun updateHiddenLayerUrls(transform: (Set<String>) -> Set<String>)
+
+    /** Persisted [hiddenLayerUrls]; suspends for the first disk load to avoid a cold-start empty default. */
+    suspend fun awaitHiddenLayerUrls(): Set<String>
+
+    /** Persisted network (URL-backed) map layers, each encoded as `id|:|name|:|uri`. */
+    val networkMapLayers: StateFlow<Set<String>>
+
+    /** Atomically mutate [networkMapLayers]; [transform] runs against the persisted value, avoiding lost updates. */
+    fun updateNetworkMapLayers(transform: (Set<String>) -> Set<String>)
+
+    /** Persisted [networkMapLayers]; suspends for the first disk load to avoid a cold-start empty default. */
+    suspend fun awaitNetworkMapLayers(): Set<String>
 }
 
 /** Reactive interface for map consent. */
@@ -391,4 +431,14 @@ interface DiscoveryPrefs {
     companion object {
         const val DEFAULT_DWELL_MINUTES = 15
     }
+}
+
+/**
+ * Reactive persistence for received Mesh Beacon invitations. Records are opaque, self-describing strings (see
+ * `MeshBeaconOffer.encode`) so this prefs layer stays free of proto/model types.
+ */
+interface MeshBeaconPrefs {
+    val storedBeacons: StateFlow<List<String>>
+
+    fun setStoredBeacons(records: List<String>)
 }

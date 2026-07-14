@@ -23,7 +23,8 @@ import org.meshtastic.core.database.entity.NodeEntity
 interface NodeInfoWriteDataSource {
     suspend fun upsert(node: NodeEntity)
 
-    suspend fun installConfig(mi: MyNodeEntity, nodes: List<NodeEntity>)
+    /** @return node numbers removed by identity migration (see `NodeInfoDao.installConfig`). */
+    suspend fun installConfig(mi: MyNodeEntity, nodes: List<NodeEntity>): List<Int>
 
     suspend fun clearNodeDB(preserveFavorites: Boolean)
 
@@ -38,6 +39,8 @@ interface NodeInfoWriteDataSource {
     suspend fun upsert(metadata: MetadataEntity)
 
     suspend fun setNodeNotes(num: Int, notes: String)
+
+    suspend fun updatePowerChannelLabel(num: Int, channelIndex: Int, label: String)
 
     suspend fun backfillDenormalizedNames()
 }

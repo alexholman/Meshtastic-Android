@@ -27,7 +27,7 @@ import org.meshtastic.core.repository.DataPair
 import org.meshtastic.core.repository.PlatformAnalytics
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
-import org.meshtastic.core.ui.util.applyReplacementChannelSet
+import org.meshtastic.core.ui.util.importChannelSet
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.proto.ChannelSet
@@ -84,14 +84,8 @@ class ChannelViewModel(
     }
 
     /** Set the radio config (also updates our saved copy in preferences). */
-    fun setChannels(channelSet: ChannelSet) = safeLaunch(tag = "setChannels") {
-        applyReplacementChannelSet(channelSet, radioController, radioConfigRepository)
-
-        val newLoraConfig = channelSet.lora_config
-        if (localConfig.value.lora != newLoraConfig) {
-            setConfig(Config(lora = newLoraConfig))
-        }
-    }
+    fun setChannels(channelSet: ChannelSet) =
+        safeLaunch(tag = "setChannels") { importChannelSet(channelSet, radioController, radioConfigRepository) }
 
     // Set the radio config (also updates our saved copy in preferences)
     fun setConfig(config: Config) {

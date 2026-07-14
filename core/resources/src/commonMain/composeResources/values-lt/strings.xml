@@ -69,6 +69,7 @@
     <string name="delivery_confirmed">Nustatymas įkeltas</string>
     <string name="desc_node_filter_clear">išvalyti įtaisų filtrą</string>
     <string name="description">Aprašymas</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">Įrenginys miega</string>
     <string name="direct_message">Tiesioginė žinutė</string>
@@ -88,7 +89,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Klaida</string>
     <string name="error_duty_cycle">Pasiektas veikimo ciklo limitas. Šiuo metu negalima siųsti žinučių, bandykite vėliau.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Gamyklinis atstatymas</string>
     <string name="fair">Pakankamas</string>
     <!-- FILTER -->
@@ -97,6 +97,7 @@
     <string name="firmware_old">Radijo įrangos pfirmware yra per sena, kad galėtų bendrauti su šia programa. Daugiau informacijos apie tai rasite <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">mūsų firmware diegimo vadove</a>.</string>
     <string name="firmware_too_old">Reikalingas įrangos Firmware atnaujinimas.</string>
     <string name="firmware_update_failed">Atnaujinti nepavyko</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <string name="good">Geras</string>
     <!-- GPIO -->
@@ -109,6 +110,7 @@
     <string name="interval_unset">Nenustatyta</string>
     <string name="intro_show">Rodyti įvadą</string>
     <string name="ip_address">IP adresas:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -135,6 +137,8 @@
     <string name="map_tile_download_estimate">Plytelių atsisiuntimo apskaičiavimas:</string>
     <string name="map_tile_source">Plytelių šaltinis</string>
     <string name="max">Max</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Nėra</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_new_nodes_notifications">Naujo įtaiso pranešimas</string>
     <string name="meshtastic_service_notifications">Paslaugos pranešimai</string>
@@ -142,7 +146,6 @@
     <string name="message">Žinutė</string>
     <string name="message_delivery_status">Žinutės pristatymo statusas</string>
     <string name="message_input_label">Žinutė</string>
-    <string name="message_status_enroute">Laukiama patvirtinimo</string>
     <string name="message_status_queued">Eilėje išsiuntimui</string>
     <string name="module_settings">Modulio konfigūracija</string>
     <!-- MQTT -->
@@ -263,6 +266,7 @@
     <string name="shutdown">Išjungti</string>
     <string name="signal">Signalas</string>
     <string name="signal_quality">Signalo kokybė</string>
+    <!-- SITE -->
     <string name="snr">SNR</string>
     <!-- TAK -->
     <string name="tak_team_red">Raudona</string>
@@ -283,6 +287,7 @@
     </plurals>
     <string name="traceroute_log">Žinutės kelias</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="twenty_four_hours">24 val</string>
     <string name="two_days">48 Valandos</string>
@@ -294,6 +299,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">per MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Ištrinti orientyrą?</string>
     <string name="waypoint_edit">Redaguoti kelio tašką</string>
     <string name="waypoint_new">Naujas orientyras</string>

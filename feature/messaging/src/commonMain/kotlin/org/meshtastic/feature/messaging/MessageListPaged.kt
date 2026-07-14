@@ -53,8 +53,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.Message
-import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
@@ -63,6 +63,8 @@ import org.meshtastic.feature.messaging.component.MessageStatusDialog
 import org.meshtastic.feature.messaging.component.ReactionDialog
 import org.meshtastic.feature.messaging.component.UnreadMessagesDivider
 
+private const val HEX_RADIX = 16
+
 internal data class MessageListHandlers(
     val onUnreadChanged: (Long, Long) -> Unit,
     val onSendReaction: (String, Int) -> Unit,
@@ -70,6 +72,8 @@ internal data class MessageListHandlers(
     val onDeleteMessages: (List<Long>) -> Unit,
     val onSendMessage: (String, String) -> Unit,
     val onReply: (Message?) -> Unit,
+    val onTranslate: (Message) -> Unit = {},
+    val onToggleTranslation: (Message) -> Unit = {},
 )
 
 internal data class MessageListPagedState(
@@ -84,6 +88,7 @@ internal data class MessageListPagedState(
     val showFiltered: Boolean = false,
     val filteringDisabled: Boolean = false,
     val searchQuery: String = "",
+    val translationAvailable: Boolean = false,
 )
 
 private fun MutableState<Set<Long>>.toggle(uuid: Long) {
@@ -108,12 +113,15 @@ internal fun MessageListPaged(
 
     // Optimization: Pre-calculate map for O(1) lookup in list items to avoid O(N) linear search during scrolling.
     val nodeMap = remember(state.nodes) { state.nodes.associateBy { it.num } }
+    val isDirectMessageConversation =
+        remember(state.contactKey) { ContactKey(state.contactKey).addressString != NodeAddress.ID_BROADCAST }
 
     var showStatusDialog by remember { mutableStateOf<Message?>(null) }
     showStatusDialog?.let { message ->
         MessageStatusDialog(
             message = message,
-            resendOption = message.status?.equals(MessageStatus.ERROR) ?: false,
+            isDirectMessage = isDirectMessageConversation,
+            resendOption = message.isStatusRetryable(isDirectMessageConversation),
             onResend = {
                 handlers.onDeleteMessages(listOf(message.uuid))
                 handlers.onSendMessage(message.text, state.contactKey)
@@ -160,6 +168,7 @@ internal fun MessageListPaged(
         inSelectionMode = inSelectionMode,
         coroutineScope = coroutineScope,
         haptics = haptics,
+        isDirectMessageConversation = isDirectMessageConversation,
         onShowStatusDialog = { showStatusDialog = it },
         onShowReactions = { showReactionDialog = it },
         modifier = modifier,
@@ -177,6 +186,7 @@ private fun MessageListPagedContent(
     inSelectionMode: Boolean,
     coroutineScope: CoroutineScope,
     haptics: HapticFeedback,
+    isDirectMessageConversation: Boolean,
     onShowStatusDialog: (Message) -> Unit,
     onShowReactions: (List<Reaction>) -> Unit,
     modifier: Modifier = Modifier,
@@ -244,6 +254,7 @@ private fun MessageListPagedContent(
                                 inSelectionMode = inSelectionMode,
                                 coroutineScope = coroutineScope,
                                 haptics = haptics,
+                                isDirectMessageConversation = isDirectMessageConversation,
                                 listState = listState,
                                 onShowStatusDialog = onShowStatusDialog,
                                 onShowReactions = onShowReactions,
@@ -262,6 +273,7 @@ private fun MessageListPagedContent(
                             inSelectionMode = inSelectionMode,
                             coroutineScope = coroutineScope,
                             haptics = haptics,
+                            isDirectMessageConversation = isDirectMessageConversation,
                             listState = listState,
                             onShowStatusDialog = onShowStatusDialog,
                             onShowReactions = onShowReactions,
@@ -294,7 +306,7 @@ private fun MessageListPagedContent(
     }
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 @Composable
 private fun RenderPagedChatMessageRow(
     message: Message,
@@ -304,6 +316,7 @@ private fun RenderPagedChatMessageRow(
     inSelectionMode: Boolean,
     coroutineScope: CoroutineScope,
     haptics: HapticFeedback,
+    isDirectMessageConversation: Boolean,
     listState: LazyListState,
     onShowStatusDialog: (Message) -> Unit,
     onShowReactions: (List<Reaction>) -> Unit,
@@ -319,6 +332,10 @@ private fun RenderPagedChatMessageRow(
             derivedStateOf { state.selectedIds.value.contains(message.uuid) }
         }
     val node = nodeMap[message.node.num] ?: message.node
+
+    // Resolve an @mention token ("!<hex>" = numeric node id) back to its node for live name + tap-to-open.
+    val resolveMention: (String) -> Node? =
+        remember(nodeMap) { { id -> id.removePrefix("!").toLongOrNull(HEX_RADIX)?.toInt()?.let { nodeMap[it] } } }
 
     MessageItem(
         modifier = modifier,
@@ -337,6 +354,7 @@ private fun RenderPagedChatMessageRow(
         onSelect = { state.selectedIds.toggle(message.uuid) },
         onDelete = { handlers.onDeleteMessages(listOf(message.uuid)) },
         onClickChip = handlers.onClickChip,
+        resolveMention = resolveMention,
         onStatusClick = { onShowStatusDialog(message) },
         onReply = { handlers.onReply(message) },
         emojis = message.emojis,
@@ -370,6 +388,10 @@ private fun RenderPagedChatMessageRow(
         hasSameNext = hasSameNext,
         quickEmojis = quickEmojis,
         searchQuery = state.searchQuery,
+        translationAvailable = state.translationAvailable,
+        isDirectMessage = isDirectMessageConversation,
+        onTranslate = { handlers.onTranslate(message) },
+        onToggleTranslation = { handlers.onToggleTranslation(message) },
     )
 }
 

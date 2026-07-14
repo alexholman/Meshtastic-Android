@@ -34,12 +34,12 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -61,6 +61,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.model.util.beaconJoinOption
+import org.meshtastic.core.model.util.toJoinChannelSet
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.back
 import org.meshtastic.core.resources.discovery_analysing_results
@@ -84,7 +86,6 @@ import org.meshtastic.core.resources.discovery_shifting_to
 import org.meshtastic.core.resources.discovery_start_scan
 import org.meshtastic.core.resources.discovery_start_scan_disabled
 import org.meshtastic.core.resources.discovery_start_scan_reason_24ghz_unsupported
-import org.meshtastic.core.resources.discovery_start_scan_reason_default_key
 import org.meshtastic.core.resources.discovery_start_scan_reason_no_presets
 import org.meshtastic.core.resources.discovery_start_scan_reason_not_connected
 import org.meshtastic.core.resources.discovery_stop_scan
@@ -99,10 +100,11 @@ import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.core.ui.util.KeepScreenOn
 import org.meshtastic.feature.discovery.DiscoveryScanState
 import org.meshtastic.feature.discovery.DiscoveryViewModel
+import org.meshtastic.feature.discovery.ui.component.BeaconChannelsCard
 import org.meshtastic.feature.discovery.ui.component.DwellProgressIndicator
 import org.meshtastic.feature.discovery.ui.component.MeshBeaconInvitationCard
 import org.meshtastic.feature.discovery.ui.component.PresetPickerCard
-import org.meshtastic.proto.MeshBeacon
+import org.meshtastic.proto.ChannelSet
 
 private val CONTENT_PADDING = 16.dp
 private val SECTION_SPACING = 16.dp
@@ -119,14 +121,18 @@ fun DiscoveryScanScreen(
     onNavigateToSummary: (sessionId: Long) -> Unit,
     onNavigateToHistory: () -> Unit,
     modifier: Modifier = Modifier,
-    onJoinOffer: (MeshBeacon) -> Unit = {},
+    onJoinOffer: (ChannelSet) -> Unit = {},
 ) {
     val scanState by viewModel.scanState.collectAsStateWithLifecycle()
     val selectedPresets by viewModel.selectedPresets.collectAsStateWithLifecycle()
     val beaconOffers by viewModel.beaconOffers.collectAsStateWithLifecycle()
+    val beaconPresets by viewModel.beaconPresets.collectAsStateWithLifecycle()
+    val beaconChannels by viewModel.beaconChannels.collectAsStateWithLifecycle()
+    val selectedBeaconChannels by viewModel.selectedBeaconChannels.collectAsStateWithLifecycle()
+    val currentLora by viewModel.currentLora.collectAsStateWithLifecycle()
+    val currentChannels by viewModel.currentChannels.collectAsStateWithLifecycle()
     val dwellMinutes by viewModel.dwellDurationMinutes.collectAsStateWithLifecycle()
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
-    val usesDefaultKey by viewModel.usesDefaultKey.collectAsStateWithLifecycle()
     val is24GhzBlocked by viewModel.is24GhzBlocked.collectAsStateWithLifecycle()
     val isLora24Region by viewModel.isLora24Region.collectAsStateWithLifecycle()
     val currentSession by viewModel.currentSession.collectAsStateWithLifecycle()
@@ -184,8 +190,7 @@ fun DiscoveryScanScreen(
                     ScanButton(
                         scanState = scanState,
                         isConnected = isConnected,
-                        hasPresetsSelected = selectedPresets.isNotEmpty(),
-                        usesDefaultKey = usesDefaultKey,
+                        hasPresetsSelected = selectedPresets.isNotEmpty() || selectedBeaconChannels.isNotEmpty(),
                         is24GhzUnsupported = isLora24Region && is24GhzBlocked,
                         onStart = viewModel::startScan,
                         onStop = viewModel::stopScan,
@@ -215,9 +220,14 @@ fun DiscoveryScanScreen(
                         )
                     }
                     items(beaconOffers, key = { "invitation_${it.key}" }) { offer ->
+                        val joinOption =
+                            remember(offer, currentLora, currentChannels) {
+                                offer.beacon.beaconJoinOption(currentLora, currentChannels)
+                            }
                         MeshBeaconInvitationCard(
                             offer = offer,
-                            onJoin = { onJoinOffer(offer.beacon) },
+                            joinOption = joinOption,
+                            onJoin = { offer.beacon.toJoinChannelSet(joinOption, currentLora)?.let(onJoinOffer) },
                             onDiscover = { viewModel.discoverOffer(offer) },
                             onDismiss = { viewModel.dismissOffer(offer) },
                         )
@@ -231,7 +241,20 @@ fun DiscoveryScanScreen(
                         homePreset = homePreset,
                         onTogglePreset = viewModel::togglePreset,
                         enabled = true,
+                        beaconPresets = beaconPresets,
                     )
+                }
+
+                // Beacon channels — custom channels advertised by beacons (hidden when none recorded)
+                if (beaconChannels.isNotEmpty()) {
+                    item(key = "beacon_channels") {
+                        BeaconChannelsCard(
+                            channels = beaconChannels,
+                            selectedIds = selectedBeaconChannels,
+                            onToggle = viewModel::toggleBeaconChannel,
+                            enabled = true,
+                        )
+                    }
                 }
 
                 // Dwell time picker
@@ -338,7 +361,7 @@ private fun DwellTimePicker(
                     readOnly = true,
                     enabled = enabled,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 )
                 ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DWELL_OPTIONS.forEach { minutes ->
@@ -361,7 +384,6 @@ private fun ScanButton(
     scanState: DiscoveryScanState,
     isConnected: Boolean,
     hasPresetsSelected: Boolean,
-    usesDefaultKey: Boolean,
     is24GhzUnsupported: Boolean,
     onStart: () -> Unit,
     onStop: () -> Unit,
@@ -378,11 +400,10 @@ private fun ScanButton(
             Text(stringResource(Res.string.discovery_stop_scan), modifier = Modifier.padding(start = 8.dp))
         }
     } else {
-        val isEnabled = isConnected && hasPresetsSelected && !usesDefaultKey && !is24GhzUnsupported
+        val isEnabled = isConnected && hasPresetsSelected && !is24GhzUnsupported
         val disabledReason =
             when {
                 !isConnected -> stringResource(Res.string.discovery_start_scan_reason_not_connected)
-                usesDefaultKey -> stringResource(Res.string.discovery_start_scan_reason_default_key)
                 is24GhzUnsupported -> stringResource(Res.string.discovery_start_scan_reason_24ghz_unsupported)
                 !hasPresetsSelected -> stringResource(Res.string.discovery_start_scan_reason_no_presets)
                 else -> ""

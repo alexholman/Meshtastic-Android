@@ -489,6 +489,26 @@ interface PacketDao {
     @Query("DELETE FROM contact_settings")
     suspend fun deleteAllContactSettings()
 
+    // region ── Cross-transport merge ──
+    // Snapshots + inserts used by DatabaseMerger to fold one transport's DB into another for the same node.
+
+    @Query("SELECT * FROM packet")
+    suspend fun getAllPacketsSnapshot(): List<Packet>
+
+    /** Insert a packet copied from another DB. Pass uuid = 0 so a fresh auto-generated id is assigned. */
+    @Insert suspend fun insertPacketForMerge(packet: Packet)
+
+    @Query("SELECT * FROM reactions")
+    suspend fun getAllReactionsSnapshot(): List<ReactionEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertReactionsIgnore(reactions: List<ReactionEntity>)
+
+    @Query("SELECT * FROM contact_settings")
+    suspend fun getAllContactSettingsSnapshot(): List<ContactSettings>
+
+    // endregion
+
     /**
      * One-time migration: Remap all message DataPacket.channel indices to new mapping using PSK after a channel
      * reorder. For each Packet (with port_num = 1), finds the old PSK then sets the channel index to the matching
@@ -547,6 +567,13 @@ interface PacketDao {
         "UPDATE packet SET filtered = :filtered WHERE (myNodeNum = 0 OR myNodeNum = (SELECT myNodeNum FROM my_node)) AND data LIKE :senderIdPattern",
     )
     suspend fun updateFilteredBySender(senderIdPattern: String, filtered: Boolean)
+
+    /** Persists an on-device translation and switches the message to display it in one write. */
+    @Query("UPDATE packet SET translated_text = :translatedText, show_translated = 1 WHERE uuid = :uuid")
+    suspend fun setTranslation(uuid: Long, translatedText: String)
+
+    @Query("UPDATE packet SET show_translated = :show WHERE uuid = :uuid")
+    suspend fun setShowTranslated(uuid: Long, show: Boolean)
 
     // region ── FTS5 Search ──
 

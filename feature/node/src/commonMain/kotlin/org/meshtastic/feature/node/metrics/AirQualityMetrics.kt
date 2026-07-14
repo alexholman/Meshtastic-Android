@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
-import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -57,12 +57,17 @@ import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.NumberFormatter
 import org.meshtastic.core.model.TelemetryType
 import org.meshtastic.core.model.util.TimeConstants.MS_PER_SEC
+import org.meshtastic.core.model.util.UnitConversions.toTempString
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.air_quality_metrics_log
 import org.meshtastic.core.resources.co2
+import org.meshtastic.core.resources.co2_humidity
+import org.meshtastic.core.resources.co2_temperature
+import org.meshtastic.core.resources.micrograms_per_cubic_meter
 import org.meshtastic.core.resources.pm10
 import org.meshtastic.core.resources.pm1_0
 import org.meshtastic.core.resources.pm2_5
+import org.meshtastic.core.resources.ppm
 import org.meshtastic.core.ui.component.Co2Severity
 import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.theme.GraphColors.Blue
@@ -96,6 +101,14 @@ internal enum class AirQuality(val labelRes: StringResource, val unit: String, v
         }
     }
 }
+
+/**
+ * The subset of [candidates] with at least one reading in [telemetries]. The chart only draws series that have data, so
+ * the legend must use this rather than the raw selection — otherwise a default-selected series (PM2.5) shows a legend
+ * entry on nodes that never report it (issue #5873). Internal so it can be unit-tested.
+ */
+internal fun metricsWithData(candidates: List<AirQuality>, telemetries: List<Telemetry>): List<AirQuality> =
+    candidates.filter { metric -> telemetries.any { metric.getValue(it) != null } }
 
 private val LEGEND_DATA =
     AirQuality.entries.map { metric -> LegendData(nameRes = metric.labelRes, color = metric.color, isLine = true) }
@@ -173,6 +186,7 @@ fun AirQualityMetricsScreen(viewModel: MetricsViewModel, onNavigateUp: () -> Uni
                 ) { _, telemetry ->
                     AirQualityMetricsCard(
                         telemetry = telemetry,
+                        isFahrenheit = state.isFahrenheit,
                         isSelected = telemetry.time.toDouble() == selectedX,
                         onClick = { onCardClick(telemetry.time.toDouble()) },
                     )
@@ -193,10 +207,11 @@ private fun AirQualityChart(
     modifier: Modifier = Modifier,
 ) {
     val activeMetrics = AirQuality.entries.filter { it in selectedMetrics }
+    val drawnMetrics = metricsWithData(activeMetrics, telemetries)
     val metricLabels = activeMetrics.associateWith { stringResource(it.labelRes) }
     MetricChartScaffold(
         isEmpty = telemetries.isEmpty() || activeMetrics.isEmpty(),
-        legendData = LEGEND_DATA.filter { ld -> activeMetrics.any { it.labelRes == ld.nameRes } },
+        legendData = LEGEND_DATA.filter { ld -> drawnMetrics.any { it.labelRes == ld.nameRes } },
         modifier = modifier,
     ) { modelProducer, chartModifier ->
         val marker =
@@ -223,7 +238,7 @@ private fun AirQualityChart(
                 activeMetrics.forEachIndexed { index, metric ->
                     val metricData = metricDataSets[index]
                     if (metricData.isNotEmpty()) {
-                        lineSeries {
+                        lineModel {
                             series(x = metricData.map { it.time }, y = metricData.map { metric.getValue(it) ?: 0f })
                         }
                     }
@@ -275,6 +290,7 @@ private fun AirQualityMetricsCard(
     telemetry: Telemetry,
     isSelected: Boolean,
     onClick: () -> Unit,
+    isFahrenheit: Boolean = false,
     timeTextOverride: String? = null,
 ) {
     val aq = telemetry.air_quality_metrics ?: return
@@ -290,21 +306,42 @@ private fun AirQualityMetricsCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(4.dp))
+            val ugm3 = stringResource(Res.string.micrograms_per_cubic_meter)
+            val ppmUnit = stringResource(Res.string.ppm)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     // Present-and-zero is a valid clean-air reading; only `?.` (absent field) hides a row.
-                    aq.pm10_standard?.let { Text("PM1.0: $it µg/m³", style = MaterialTheme.typography.bodySmall) }
-                    aq.pm25_standard?.let { Text("PM2.5: $it µg/m³", style = MaterialTheme.typography.bodySmall) }
-                    aq.pm100_standard?.let { Text("PM10: $it µg/m³", style = MaterialTheme.typography.bodySmall) }
+                    listOfNotNull(
+                        aq.pm10_standard?.let { Res.string.pm1_0 to it },
+                        aq.pm25_standard?.let { Res.string.pm2_5 to it },
+                        aq.pm100_standard?.let { Res.string.pm10 to it },
+                    )
+                        .forEach { (label, value) ->
+                            Text("${stringResource(label)}: $value $ugm3", style = MaterialTheme.typography.bodySmall)
+                        }
                 }
                 Column {
                     aq.co2?.let { co2 ->
                         val severity = Co2Severity.fromPpm(co2)
                         Text(
-                            text = "CO₂: $co2 ppm",
+                            text = "${stringResource(Res.string.co2)}: $co2 $ppmUnit",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
                             color = severity?.color ?: MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    // SCD4x CO₂ sensors also report temperature/humidity (#5873); present-and-zero is valid, so only
+                    // `?.` (absent field) hides a row.
+                    aq.co2_temperature?.let {
+                        Text(
+                            "${stringResource(Res.string.co2_temperature)}: ${it.toTempString(isFahrenheit)}",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    aq.co2_humidity?.let {
+                        Text(
+                            "${stringResource(Res.string.co2_humidity)}: ${NumberFormatter.format(it, 0)}%",
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -322,7 +359,14 @@ fun PreviewAirQualityCards() {
             Telemetry(
                 time = 1700000000,
                 air_quality_metrics =
-                AirQualityMetricsProto(pm10_standard = 4, pm25_standard = 9, pm100_standard = 12, co2 = 620),
+                AirQualityMetricsProto(
+                    pm10_standard = 4,
+                    pm25_standard = 9,
+                    pm100_standard = 12,
+                    co2 = 620,
+                    co2_temperature = 21.5f,
+                    co2_humidity = 58f,
+                ),
             ) to "2023-11-14 20:13",
             Telemetry(
                 time = 1700003600,

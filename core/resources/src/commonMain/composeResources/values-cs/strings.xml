@@ -262,6 +262,7 @@
     <string name="demo_mode">Demo režim</string>
     <string name="desc_node_filter_clear">vyčistit filtr uzlů</string>
     <string name="description">Popis</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Podrobnosti</string>
     <string name="detection_sensor">Detekční senzor</string>
@@ -354,11 +355,8 @@
     <string name="ethernet_enabled">Ethernet povolen</string>
     <string name="exchange_position">Vyžádat pozici</string>
     <string name="expires">Platnost do</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Exportovat nastavení</string>
     <string name="export_data_csv">Exportovat všechny pakety</string>
-    <string name="export_keys">Exportovat klíče</string>
-    <string name="export_keys_confirmation">Exportuje veřejné a soukromé klíče do souboru. Uložte je prosím bezpečně.</string>
     <string name="external_notification">Externí oznámení</string>
     <string name="external_notification_config">Nastavení externího oznámení</string>
     <string name="external_notification_enabled">Externí oznámení povoleno</string>
@@ -449,6 +447,7 @@
     <string name="fixed_position">Pevná poloha</string>
     <string name="flip_screen">Překlopit obrazovku</string>
     <string name="for_more_information_see_our_privacy_policy">Další informace naleznete v našich zásadách ochrany osobních údajů.</string>
+    <!-- FORMAT -->
     <string name="free_memory">Volná paměť</string>
     <string name="frequency_slot">Frekvenční slot</string>
     <string name="friendly_name">Přezdívka</string>
@@ -511,6 +510,7 @@
     <string name="ip_port">Port:</string>
     <string name="ipv4_mode">Režim IPv4</string>
     <string name="json_output_enabled">JSON výstup povolen</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="last_heard_filter_label">Filtrovat podle času posledního slyšení: %1$s</string>
     <string name="last_position_update">Poslední aktualizace pozice</string>
@@ -599,6 +599,9 @@
     <string name="map_type_terrain">Terénní</string>
     <string name="mark_as_read">Označit jako přečtené</string>
     <string name="max">Max</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Zavřít</string>
+    <string name="mesh_beacon_preset_none">Žádný</string>
     <string name="mesh_map_location">Poloha v mesh mapě</string>
     <string name="mesh_map_location_description">Zobrazí modrou tečku polohy vašeho telefonu v mesh mapě.</string>
     <!-- MESHTASTIC -->
@@ -618,7 +621,6 @@
     <string name="message_device_managed">Toto rádio je spravováno vzdáleným správcem a změny může provádět jen on.</string>
     <string name="message_input_label">Zpráva</string>
     <string name="message_status_delivered">Doručeno do mesh sítě</string>
-    <string name="message_status_enroute">Čeká na potvrzení</string>
     <string name="message_status_queued">Ve frontě k odeslání</string>
     <string name="message_status_unknown">Neznámé</string>
     <string name="messages">Zprávy</string>
@@ -998,6 +1000,8 @@
     <string name="shutdown_warning">⚠️ Tímto dojde k VYPNUTÍ uzlu. K jeho opětovnému zapnutí bude nutný fyzický zásah.</string>
     <string name="signal">Signál</string>
     <string name="signal_quality">Kvalita signálu</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Obrazovka</string>
     <string name="skip">Přeskočit</string>
     <string name="smart_position">Chytrá poloha</string>
     <string name="snr">SNR</string>
@@ -1060,6 +1064,8 @@
     <string name="track_point">bod trasy</string>
     <!-- TRAFFIC -->
     <string name="traffic_management_position_min_interval">Minimální interval pozice (v sekundách)</string>
+    <string name="translate">Překlad</string>
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Přenos přes LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
@@ -1118,6 +1124,7 @@
     <string name="wait_for_bluetooth_duration_seconds">Doba čekání na Bluetooth</string>
     <string name="wake_on_tap_or_motion">Probuzení klepnutím nebo pohybem</string>
     <string name="warning">Varování</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Smazat waypoint?</string>
     <string name="waypoint_edit">Upravit waypoint</string>
     <string name="waypoint_new">Nový waypoint</string>

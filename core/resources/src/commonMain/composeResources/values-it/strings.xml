@@ -74,6 +74,7 @@
     <string name="audio_config">Configurazione Audio</string>
     <string name="available_pins">Pin disponibili</string>
     <string name="back">Indietro</string>
+    <string name="backup_keys">Backup chiavi</string>
     <string name="bad">Scarso</string>
     <string name="bandwidth">Larghezza di banda</string>
     <string name="baro_pressure">Pressione atmosferica</string>
@@ -242,6 +243,7 @@
     <string name="demo_mode">Modalità Demo</string>
     <string name="desc_node_filter_clear">elimina filtro nodi</string>
     <string name="description">Descrizione</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Dettagli</string>
     <string name="detection_sensor">Sensore Di Rilevamento</string>
@@ -262,6 +264,7 @@
     <string name="dew_point">Punto Di Rugiada</string>
     <string name="direct_message">Messaggio diretto</string>
     <string name="direct_message_key">Chiave per Messaggi Diretti</string>
+    <string name="direct_messages">Messaggi Diretti</string>
     <string name="discard_changes">Annulla</string>
     <string name="disconnect">Disconnetti</string>
     <string name="disconnected">Disconnesso</string>
@@ -327,11 +330,8 @@
     <string name="ethernet_ip">IP Ethernet:</string>
     <string name="exchange_position">Scambia posizione</string>
     <string name="expires">Scade</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Esporta configurazione</string>
     <string name="export_data_csv">Esporta tutti i pacchetti</string>
-    <string name="export_keys">Esporta Chiavi</string>
-    <string name="export_keys_confirmation">Esporta le chiavi pubbliche e private in un file. Si prega di memorizzarlo da qualche parte in modo sicuro.</string>
     <string name="external_notification">Notifica Esterna</string>
     <string name="external_notification_config">Configurazione Notifiche Esterne</string>
     <string name="external_notification_enabled">Notifica esterna attivata</string>
@@ -390,6 +390,7 @@
     <string name="fixed_position">Posizione Fissa</string>
     <string name="flip_screen">Capovolgi schermo</string>
     <string name="for_more_information_see_our_privacy_policy">Per ulteriori informazioni, consulta la nostra informativa sulla privacy.</string>
+    <!-- FORMAT -->
     <string name="free_memory">Memoria libera</string>
     <string name="freq">Freq</string>
     <string name="frequency_slot">Slot di Frequenza</string>
@@ -462,6 +463,7 @@
     <string name="ip_port">Porta:</string>
     <string name="ipv4_mode">Modalità IPv4</string>
     <string name="json_output_enabled">Output JSON abilitato</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="label_long_fast">Distanza Grande / Lento</string>
     <string name="label_long_moderate">Lungo Raggio - Moderato</string>
@@ -551,6 +553,9 @@
     <string name="match_all">Trova tutte le corrispondenze | Qualsiasi</string>
     <string name="match_any">Trova qualsiasi corrispondenza | Tutte</string>
     <string name="max">Max</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Cancella</string>
+    <string name="mesh_beacon_preset_none">Nessuno</string>
     <string name="mesh_map_location">Posizione sulla mappa della Mesh</string>
     <string name="mesh_map_location_description">Abilita l'indicatore blu per il tuo telefono sulla mappa della mesh.</string>
     <!-- MESHTASTIC -->
@@ -569,7 +574,6 @@
     <string name="message_delivery_status">Stato di consegna messaggi</string>
     <string name="message_device_managed">Questa radio è gestita e può essere modificata solo da un amministratore remoto.</string>
     <string name="message_input_label">Messaggio</string>
-    <string name="message_status_enroute">In attesa di conferma</string>
     <string name="message_status_queued">In coda per l'invio</string>
     <string name="message_status_sfpp_confirmed">Confermato sulla catena SF++</string>
     <string name="message_status_sfpp_routing">Percorso tramite catena SF++…</string>
@@ -913,6 +917,8 @@
     <string name="shutdown_warning">⚠️ Il nodo verrà SPENTO. Sarà necessario un intervento manuale per riaccenderlo.</string>
     <string name="signal">Segnale</string>
     <string name="signal_quality">Qualità Segnale</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Schermo</string>
     <string name="skip">Ignora</string>
     <string name="slot">Slot</string>
     <string name="smart_position">Posizione Smart</string>
@@ -972,6 +978,7 @@
     <string name="track_point">punto di interesse</string>
     <!-- TRAFFIC -->
     <string name="traffic_management_enabled">Modulo abilitato</string>
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Trasmettere su LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_ble">BLE</string>
@@ -1036,6 +1043,7 @@
     <string name="wait_for_bluetooth_duration_seconds">Durata attesa Bluetooth</string>
     <string name="wake_on_tap_or_motion">Accendi lo schermo al tocco o al movimento</string>
     <string name="warning">Attenzione</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Elimina waypoint?</string>
     <string name="waypoint_edit">Modifica waypoint</string>
     <string name="waypoint_new">Nuovo waypoint</string>

@@ -76,6 +76,7 @@
     <string name="delete_for_me">Прыбраць для мяне</string>
     <string name="desc_node_filter_clear">скінуць фільтр</string>
     <string name="description">Апісанне</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <!-- DEVICE -->
     <string name="device">Прылада</string>
@@ -102,8 +103,6 @@
     <string name="environment">Асяроддзе</string>
     <string name="error">Памылка</string>
     <string name="ethernet_ip">Ethernet IP:</string>
-    <!-- EXPORT -->
-    <string name="export_keys">Экспартаваць ключы</string>
     <string name="fallback_node_name">Meshtastic %1$s</string>
     <!-- FILTER -->
     <string name="filter_icon">Фільтраваць</string>
@@ -111,6 +110,7 @@
     <string name="firmware">Прашыўка</string>
     <string name="firmware_update_keep_device_close">.</string>
     <string name="firmware_update_retry">Паспрабаваць яшчэ раз</string>
+    <!-- FORMAT -->
     <string name="free_memory">Вольная памяць</string>
     <!-- GEOFENCE -->
     <string name="get_started">Пачаць</string>
@@ -129,6 +129,7 @@
     <string name="ip">IP</string>
     <string name="ip_address">IP-адрас:</string>
     <string name="ip_port">Порт:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -143,13 +144,14 @@
     <string name="map_type_normal">Звычайная</string>
     <string name="map_type_satellite">Спадарожнік</string>
     <string name="map_type_terrain">Рэльеф</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Нічога</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_app_name">Meshtastic</string>
     <!-- MESSAGE -->
     <string name="message">Паведамленне</string>
     <string name="message_input_label">Паведамленне</string>
-    <string name="message_status_enroute">Чакае пацвярджэння</string>
     <string name="message_status_queued">У чарзе на адпраўку</string>
     <string name="messages">Паведамленні</string>
     <!-- MQTT -->
@@ -267,6 +269,8 @@
     <!-- SHOW -->
     <string name="show_password">Паказаць пароль</string>
     <string name="signal_quality">Якасць сігнала</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Экран</string>
     <string name="skip">Прапусціць</string>
     <string name="snr">сігнал-шум</string>
     <string name="speed">Хуткасць</string>
@@ -281,6 +285,7 @@
     <string name="timeout">Скончыўся час чакання</string>
     <!-- TRACEROUTE -->
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
     <string name="transport_mqtt">MQTT</string>
@@ -296,6 +301,7 @@
     <string name="user">Карыстальнік</string>
     <string name="username">Імя карыстальніка</string>
     <string name="via_mqtt">праз MQTT</string>
+    <!-- WAYPOINT -->
     <!-- WIFI -->
     <string name="wifi_ip">Wifi IP:</string>
     <string name="wifi_provision_success_ip_address">IP-адрас</string>

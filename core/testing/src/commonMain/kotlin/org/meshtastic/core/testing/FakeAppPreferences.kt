@@ -151,6 +151,12 @@ class FakeUiPrefs : UiPrefs {
         showQuickChat.value = show
     }
 
+    override val eventThemeEnabled = MutableStateFlow(true)
+
+    override fun setEventThemeEnabled(enabled: Boolean) {
+        eventThemeEnabled.value = enabled
+    }
+
     override val bleAutoScan = MutableStateFlow(false)
 
     override fun setBleAutoScan(enabled: Boolean) {
@@ -275,6 +281,22 @@ class FakeMapPrefs : MapPrefs {
     override fun setLastHeardTrackFilter(seconds: Long) {
         lastHeardTrackFilter.value = seconds
     }
+
+    override val hiddenLayerUrls = MutableStateFlow<Set<String>>(emptySet())
+
+    override fun updateHiddenLayerUrls(transform: (Set<String>) -> Set<String>) {
+        hiddenLayerUrls.value = transform(hiddenLayerUrls.value)
+    }
+
+    override suspend fun awaitHiddenLayerUrls(): Set<String> = hiddenLayerUrls.value
+
+    override val networkMapLayers = MutableStateFlow<Set<String>>(emptySet())
+
+    override fun updateNetworkMapLayers(transform: (Set<String>) -> Set<String>) {
+        networkMapLayers.value = transform(networkMapLayers.value)
+    }
+
+    override suspend fun awaitNetworkMapLayers(): Set<String> = networkMapLayers.value
 }
 
 class FakeMapConsentPrefs : MapConsentPrefs {

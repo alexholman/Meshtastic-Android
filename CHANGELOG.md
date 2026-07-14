@@ -7,7 +7,7 @@ See [GitHub Releases](https://github.com/meshtastic/Meshtastic-Android/releases)
 <!-- UNRELEASED_START -->
 ## [Unreleased]
 
-### Closed Beta (v2.8.0-closed.4)
+### Closed Beta (v2.8.0-closed.9)
 Changes since [`v2.7.14`](https://github.com/meshtastic/Meshtastic-Android/releases/tag/v2.7.14):
 
 #### 🏗️ Features
@@ -34,6 +34,35 @@ Changes since [`v2.7.14`](https://github.com/meshtastic/Meshtastic-Android/relea
 * feat: NFC tag writing for shared contacts and channels by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6030
 * feat: Waypoint geofences (editor, map overlays, alert engine)  by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6014
 * feat(lora): default US region to LongTurbo preset by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6009
+* feat(connections): add deep link to trigger a connection by address by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6036
+* feat(desktop): add Flathub screenshots to metainfo.xml by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6042
+* feat(testing): debug-only skip_onboarding intent extra for AI/CI tooling by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6044
+* feat(discovery): surface received Mesh Beacon invitations by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6043
+* feat(firmware): nRF52 legacy BLE DFU — stock-bootloader fixes + stranded-device recovery by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6041
+* feat(settings): wire is_unmessagable/is_licensed into DeviceProfile export/import by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6065
+* Style GeoJSON overlays from simplestyle-spec (fill/stroke) by @garthvh in https://github.com/meshtastic/Meshtastic-Android/pull/6088
+* feat(discovery): Mesh Beacon client with iOS 014-mesh-beacons parity by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6097
+* feat(messaging): translate chat messages in-place with on-device ML Kit (google flavor only) by @thebentern in https://github.com/meshtastic/Meshtastic-Android/pull/6103
+* feat(database): unify device database across transports by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6096
+* feat: compute EPA NowCast AQI from PM2.5 history by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6102
+* Add secure key backup/restore/delete for security config by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6105
+* feat(messaging): @mention with deep-link to node detail (#6098) by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6108
+* feat(node): label power channels and fix pressure axis scale by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6111
+* Show outgoing message status text by @RCGV1 in https://github.com/meshtastic/Meshtastic-Android/pull/6121
+* feat(map): Site Planner coverage integration — import + estimate by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6136
+* feat(node): show CO₂ sensor temperature & humidity on Air Quality page by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6143
+* feat(node): histogram of nodes per hop distance (#5745) by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6146
+* feat(map): F-Droid map-layer parity — share layer UI + logic in common source (#6138) by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6148
+* Promote CO2 temperatures to summary if no other temp is present. by @DaneEvans in https://github.com/meshtastic/Meshtastic-Android/pull/6153
+* feat(firmware): Confirm local firmware files before flashing by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6083
+* feat(messaging): split Conversations into collapsible Channels/DM sections by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6169
+* perf(mqtt): drop payload-less client-proxy downlinks before forwarding by @thebentern in https://github.com/meshtastic/Meshtastic-Android/pull/6171
+* feat(map): send a waypoint as a DM or to a specific channel by @joeyleake in https://github.com/meshtastic/Meshtastic-Android/pull/6218
+* feat(firmware): nightly preview channel behind the hidden-features unlock by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6225
+#### 🖥️ Desktop
+* fix(data): stale firmware/hardware caches — stop cancelling slow API refreshes, prune pulled releases, seed from newer bundles by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6060
+* fix(geofence): restrict crossing alerts to creator, add per-geofence opt-in by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6117
+* fix(ble): refresh GATT cache around ESP32 OTA profile changes by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6166
 #### 🛠️ Fixes
 * fix(mqtt): make the MQTT client-id unique per connection by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5755
 * fix(ble): Harden BLE connection lifecycle by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/5795
@@ -82,6 +111,43 @@ Changes since [`v2.7.14`](https://github.com/meshtastic/Meshtastic-Android/relea
 * fix(firmware): repair nRF USB firmware update and post-update reconnect by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6018
 * fix(ble): Handle scan registration failure by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6019
 * fix(discovery): show disabled reason below Start Analysis button by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6027
+* fix(qr): Stabilize scanner lifecycle and imports by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6040
+* fix(connections): label the connecting-card button "Stop Connecting" by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6046
+* fix(messages): Refresh channel placeholders after updates by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6054
+* fix(qr): Filter duplicate ADD imports by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6056
+* fix(ci): rename skip_author to ignore_usernames in .coderabbit.yaml by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6069
+* fix(qr): Apply channel replacements reliably by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6072
+* fix(logs): Allow access to DebugPanel Logs while disconnected by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6074
+* fix: harden against adversarial mesh-fuzz findings (crash, GC-thrash, unbounded growth, OOM) by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6093
+* fix: remove satellite-count chip from node-list metrics row by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6100
+* fix: derive phone-UI units from OS locale, not radio display config by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6101
+* fix(ui): align AdaptiveTwoPane split to the adaptive directive breakpoint by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6112
+* fix(settings): Apply manual channel writes in order by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6077
+* fix(settings): Generate fresh PSK for named manual channels by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6076
+* fix(discovery): let default-channel users start a scan by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6120
+* fix(discovery): ship a fresh LoRaConfig when switching to a beacon's preset by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6135
+* fix(runtime): harden BLE profile, OTA setup, and DB access by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6126
+* fix(messaging): use stored contact_key to avoid duplicate LazyColumn key crash (#6131) by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6142
+* fix(metrics): air-quality chart legend follows plotted data, not selection by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6145
+* fix(firmware): Keep bundled release discovery available by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6082
+* fix(dfu): Detect legacy bootloaders before secure fallback by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6079
+* fix(firmware): Retry ESP32 OTA service connections cleanly by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6081
+* fix(database): recover firmware metadata reads after DB pool churn by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6177
+* fix: address 2.8.0 release-audit findings by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6189
+* fix: keep node-mute authoritative over @mentions by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6190
+* fix: dedup node lists to prevent LazyColumn duplicate-key crash by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6193
+* fix(discovery): restore radio home config after an interrupted scan by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6192
+* fix(service): route notification quick-replies through the send pipeline; drop dead parcelize plugin by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6196
+* fix(firmware): never offer an alpha release older than current stable by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6198
+* fix(settings): keep the Debug Panel accessible while disconnected by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6199
+* fix(database): force Room single-connection pool on all platforms by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6202
+* fix(dfu): harden Legacy nRF52 recovery after BLE stalls by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6201
+* fix(dfu): classify disconnects from failed Legacy writes by @jeremiah-k in https://github.com/meshtastic/Meshtastic-Android/pull/6209
+* fix(database): migrate device identity across firmware 2.8 renumbering by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6228
+* fix(database): make completed cross-transport merges retry-idempotent by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6231
+* fix(database): route all one-shot DB writes through the merge drain barrier by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6233
+* fix(database): make the injected DiscoveryDao follow the active database by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6236
+* fix(agents): datadog-rum-investigator blocked by Datadog MCP UUID mount prefix by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6241
 #### 📝 Other Changes
 * refactor(takserver): commonize TAK SDK pipeline, drop redundant zstd/xpp3 deps by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5871
 * refactor(settings): remove Traffic Management module config by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5878
@@ -92,10 +158,16 @@ Changes since [`v2.7.14`](https://github.com/meshtastic/Meshtastic-Android/relea
 * refactor(ui): migrate MapView dialog to Compose M3 + drop legacy material dependency by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5988
 * refactor(settings): replace SimpleDateFormat with kotlinx-datetime by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5992
 * refactor(car): drop dead FuzzyNodeNameResolver duplicate by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/5994
+* refactor(qr): apply channel imports atomically via edit-settings transaction by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6170
+* refactor(di): drop the F-Droid ApiService stub, use the real API client in both flavors by @jamesarich in https://github.com/meshtastic/Meshtastic-Android/pull/6226
 
 ## New Contributors
 * @LesterCheng made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/5752
 * @dubsector made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/5986
+* @garthvh made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/6088
+* @coderabbitai[bot] made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/6180
+* @madeofstown made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/6210
+* @joeyleake made their first contribution in https://github.com/meshtastic/Meshtastic-Android/pull/6218
 <!-- UNRELEASED_END -->
 
 <!-- RELEASED_START -->

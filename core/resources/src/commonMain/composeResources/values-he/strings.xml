@@ -61,6 +61,7 @@
         <item quantity="other">מחק %1$s הודעות?</item>
     </plurals>
     <string name="description">תיאור</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">מכשיר במצב שינה</string>
     <string name="direct_message">הודעה ישירה</string>
@@ -75,7 +76,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">שגיאה</string>
     <string name="error_duty_cycle">הגעת לרף ה-duty cycle. לא ניתן לשלוח הודעות כרגע, בבקשה נסה שוב מאוחר יותר.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">איפוס להגדרות היצרן</string>
     <!-- FILTER -->
     <string name="filter_icon">פילטר</string>
@@ -83,6 +83,7 @@
     <string name="firmware_old">קושחת המכשיר ישנה מידי בכדי לתקשר עם האפליקציה. למידע נוסף בקר ב<a href="https://meshtastic.org/docs/getting-started/flashing-firmware">מדריך התקנת קושחה</a>.</string>
     <string name="firmware_too_old">נדרש עדכון קושחה.</string>
     <string name="firmware_update_failed">העדכון נכשל</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <!-- GPIO -->
     <!-- IGNORE -->
@@ -93,6 +94,7 @@
     <string name="intro_show">הראה מקדמה</string>
     <string name="ip_address">‏כתובת IP:</string>
     <string name="ip_port">פורט:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -117,6 +119,7 @@
     <string name="map_subDescription">כיוון: %1$d° מרחק: %2$s</string>
     <string name="map_tile_download_estimate">הערכת זמן להורדה:</string>
     <string name="map_tile_source">מקור מפות</string>
+    <!-- MESH -->
     <!-- MESHTASTIC -->
     <string name="meshtastic_alerts_notifications">התראות</string>
     <string name="meshtastic_service_notifications">התראות שירות</string>
@@ -191,6 +194,7 @@
     <string name="share">שתף</string>
     <!-- SHOW -->
     <string name="shutdown">כיבוי</string>
+    <!-- SITE -->
     <!-- TAK -->
     <string name="theme">ערכת נושא</string>
     <string name="theme_dark">כהה</string>
@@ -200,12 +204,14 @@
     <string name="traceroute">בדיקת מסלול</string>
     <string name="traceroute_log">בדיקת מסלול</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <!-- UNKNOWN -->
     <string name="unknown_username">שם המשתמש אינו מוכר</string>
     <!-- URL -->
     <!-- USE -->
     <!-- USER -->
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">מחק נקודת ציון?</string>
     <string name="waypoint_edit">ערוך נקודת ציון</string>
     <string name="waypoint_new">נקודת ציון חדשה</string>

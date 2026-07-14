@@ -53,11 +53,26 @@ class FakeRadioController :
     val lastLocalConfig: Config?
         get() = localConfigs.lastOrNull()
 
+    /** Every [setLocalChannel] call, in order. */
+    val localChannels = mutableListOf<Channel>()
+
     var throwOnSend: Boolean = false
+
+    /** When true, [setLocalConfig] throws — simulates the radio link dropping mid config write. */
+    var throwOnSetLocalConfig: Boolean = false
+
+    /**
+     * When set, a channel write throws once [localChannels] has reached this many entries — simulates a mid-write
+     * failure.
+     */
+    var failChannelWriteAfter: Int? = null
     var lastSetDeviceAddress: String? = null
+    var lastSetOwnerUser: User? = null
     var editSettingsCalled = false
     var startProvideLocationCalled = false
     var stopProvideLocationCalled = false
+    var gattCacheInvalidationRequested = false
+        private set
 
     init {
         registerResetAction {
@@ -65,11 +80,16 @@ class FakeRadioController :
             favoritedNodes.clear()
             sentSharedContacts.clear()
             localConfigs.clear()
+            localChannels.clear()
             throwOnSend = false
+            throwOnSetLocalConfig = false
+            failChannelWriteAfter = null
             lastSetDeviceAddress = null
+            lastSetOwnerUser = null
             editSettingsCalled = false
             startProvideLocationCalled = false
             stopProvideLocationCalled = false
+            gattCacheInvalidationRequested = false
         }
     }
 
@@ -102,20 +122,30 @@ class FakeRadioController :
     override suspend fun refreshMetadata(destNum: Int) {}
 
     override suspend fun setLocalConfig(config: Config) {
+        if (throwOnSetLocalConfig) error("Fake local config write failure")
         localConfigs.add(config)
     }
 
-    override suspend fun setLocalChannel(channel: Channel) {}
+    override suspend fun setLocalChannel(channel: Channel) {
+        localChannels.add(channel)
+    }
 
-    override suspend fun setOwner(destNum: Int, user: User, packetId: Int) {}
+    override suspend fun setOwner(destNum: Int, user: User, packetId: Int) {
+        lastSetOwnerUser = user
+    }
 
     override suspend fun setHamMode(destNum: Int, hamParameters: HamParameters, packetId: Int) {}
 
-    override suspend fun setConfig(destNum: Int, config: Config, packetId: Int) {}
+    override suspend fun setConfig(destNum: Int, config: Config, packetId: Int) {
+        localConfigs.add(config)
+    }
 
     override suspend fun setModuleConfig(destNum: Int, config: ModuleConfig, packetId: Int) {}
 
-    override suspend fun setRemoteChannel(destNum: Int, channel: Channel, packetId: Int) {}
+    override suspend fun setRemoteChannel(destNum: Int, channel: Channel, packetId: Int) {
+        failChannelWriteAfter?.let { if (localChannels.size >= it) error("Fake channel write failure") }
+        localChannels.add(channel)
+    }
 
     override suspend fun setFixedPosition(destNum: Int, position: Position) {}
 
@@ -183,6 +213,8 @@ class FakeRadioController :
         scope.block()
     }
 
+    override suspend fun editLocalSettings(block: suspend AdminEditScope.() -> Unit) = editSettings(0, block)
+
     override fun generatePacketId(): Int = 1
 
     override fun startProvideLocation() {
@@ -197,9 +229,17 @@ class FakeRadioController :
         lastSetDeviceAddress = address
     }
 
+    override fun requestGattCacheInvalidationOnNextConnect() {
+        gattCacheInvalidationRequested = true
+    }
+
     // --- Helper methods for testing ---
 
     fun setConnectionState(state: ConnectionState) {
         _connectionState.value = state
+    }
+
+    fun setClientNotification(notification: ClientNotification?) {
+        _clientNotification.value = notification
     }
 }

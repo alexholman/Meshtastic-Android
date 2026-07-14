@@ -19,7 +19,9 @@ package org.meshtastic.feature.settings.radio
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,15 +35,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 import org.meshtastic.core.common.util.CommonUri
+import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.common.util.safeCatching
 import org.meshtastic.core.domain.usecase.settings.AdminActionsUseCase
 import org.meshtastic.core.domain.usecase.settings.ExportProfileUseCase
-import org.meshtastic.core.domain.usecase.settings.ExportSecurityConfigUseCase
 import org.meshtastic.core.domain.usecase.settings.ImportProfileUseCase
+import org.meshtastic.core.domain.usecase.settings.ImportSecurityConfigUseCase
 import org.meshtastic.core.domain.usecase.settings.InstallProfileUseCase
 import org.meshtastic.core.domain.usecase.settings.ProcessRadioResponseUseCase
 import org.meshtastic.core.domain.usecase.settings.RadioConfigUseCase
@@ -64,11 +70,19 @@ import org.meshtastic.core.repository.MqttManager
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.RadioConfigRepository
+import org.meshtastic.core.repository.SecurityKeyBackupStore
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.UiText
 import org.meshtastic.core.resources.cant_shutdown
+import org.meshtastic.core.resources.key_backup_deleted
+import org.meshtastic.core.resources.key_backup_not_found
+import org.meshtastic.core.resources.key_backup_restore_failed
+import org.meshtastic.core.resources.key_backup_restored
+import org.meshtastic.core.resources.key_backup_saved
 import org.meshtastic.core.resources.timeout
+import org.meshtastic.core.resources.unknown_error
+import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.util.getChannelList
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.feature.settings.navigation.ConfigRoute
@@ -90,7 +104,10 @@ import org.meshtastic.proto.LocalModuleConfig
 import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.ModuleConfig
 import org.meshtastic.proto.User
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
+internal val MANUAL_CHANNEL_WRITE_DELAY: Duration = 1.seconds
 
 /** Data class that represents the current RadioConfig state. */
 data class RadioConfigState(
@@ -131,7 +148,7 @@ open class RadioConfigViewModel(
     private val homoglyphEncodingPrefs: HomoglyphPrefs,
     protected val importProfileUseCase: ImportProfileUseCase,
     protected val exportProfileUseCase: ExportProfileUseCase,
-    protected val exportSecurityConfigUseCase: ExportSecurityConfigUseCase,
+    protected val importSecurityConfigUseCase: ImportSecurityConfigUseCase,
     private val installProfileUseCase: InstallProfileUseCase,
     private val radioConfigUseCase: RadioConfigUseCase,
     private val adminActionsUseCase: AdminActionsUseCase,
@@ -140,6 +157,8 @@ open class RadioConfigViewModel(
     private val fileService: FileService,
     private val mqttManager: MqttManager,
     private val lockdownCoordinator: LockdownCoordinator,
+    private val securityKeyBackupStore: SecurityKeyBackupStore,
+    private val snackbarManager: SnackbarManager,
 ) : ViewModel() {
 
     val lockdownTokenInfo = serviceRepository.lockdownTokenInfo
@@ -208,6 +227,9 @@ open class RadioConfigViewModel(
     val mqttProbeStatus: StateFlow<MqttProbeStatus?> = _mqttProbeStatus.asStateFlow()
 
     private var probeJob: Job? = null
+    private val channelUpdateMutex = Mutex()
+    private var manualChannelBatchEnqueueing = false
+    private val manualChannelBatchRequestIds = mutableSetOf<Int>()
 
     /**
      * Run a one-shot reachability/credentials probe against an MQTT broker. Cancels any in-flight probe before starting
@@ -239,6 +261,7 @@ open class RadioConfigViewModel(
         get() = _destNode
 
     private val requestIds = MutableStateFlow(hashSetOf<Int>())
+    private val requestTimeoutJobs = mutableMapOf<Int, Job>()
     private val _radioConfigState = MutableStateFlow(RadioConfigState())
     val radioConfigState: StateFlow<RadioConfigState> = _radioConfigState
 
@@ -391,22 +414,83 @@ open class RadioConfigViewModel(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     fun updateChannels(new: List<ChannelSettings>, old: List<ChannelSettings>) {
         val destNum = destNum ?: destNode.value?.num ?: return
-        getChannelList(new, old).forEach { channel ->
-            safeLaunch(tag = "setRemoteChannel") {
-                val packetId = radioConfigUseCase.setRemoteChannel(destNum, channel)
-                registerRequestId(packetId)
-            }
-        }
 
-        if (destNum == myNodeNum) {
-            safeLaunch(tag = "migrateChannels") {
-                packetRepository.migrateChannelsByPSK(old, new)
-                radioConfigRepository.replaceAllSettings(new)
+        safeLaunch(tag = "setRemoteChannels") {
+            // Manual channel saves are an ordered batch: only update canonical local state after every write request is
+            // enqueued. Serialize batches so two ordered write plans cannot interleave on the radio link, and diff
+            // each queued save against the canonical list at the moment it starts.
+            channelUpdateMutex.withLock {
+                val current = radioConfigState.value.channelList.ifEmpty { old }
+                val updatePlan = getManualChannelUpdatePlan(new, current)
+                if (updatePlan.isEmpty()) return@withLock
+                if (!beginManualChannelBatch(updatePlan.size)) return@withLock
+                val batchRequestIds = mutableSetOf<Int>()
+
+                try {
+                    applyManualChannelUpdatePlan(
+                        updatePlan = updatePlan,
+                        currentSettings = current,
+                        finalSettings = new,
+                        writeChannel = { channel -> radioConfigUseCase.setRemoteChannel(destNum, channel) },
+                        registerRequestId = { packetId ->
+                            batchRequestIds.add(packetId)
+                            registerManualChannelBatchRequestId(packetId)
+                        },
+                        onInterrupted = { result ->
+                            reconcileInterruptedManualChannelUpdate(
+                                destNum = destNum,
+                                oldSettings = current,
+                                appliedSettings = result.appliedSettings,
+                            )
+                        },
+                    )
+                    commitManualChannelSettings(destNum = destNum, oldSettings = current, newSettings = new)
+                    finishManualChannelBatch()
+                } catch (e: CancellationException) {
+                    abortManualChannelBatch(batchRequestIds)
+                    throw e
+                } catch (e: Throwable) {
+                    abortManualChannelBatch(batchRequestIds)
+                    Logger.w(e) { "Manual channel update failed after enqueue" }
+                    e.message?.let(::sendError) ?: sendError(Res.string.unknown_error)
+                }
             }
         }
-        _radioConfigState.update { it.copy(channelList = new) }
+    }
+
+    private fun getManualChannelUpdatePlan(new: List<ChannelSettings>, old: List<ChannelSettings>): List<Channel> =
+        getChannelList(new, old).sortedBy { it.index }
+
+    private suspend fun commitManualChannelSettings(
+        destNum: Int,
+        oldSettings: List<ChannelSettings>,
+        newSettings: List<ChannelSettings>,
+    ) {
+        withContext(NonCancellable) {
+            if (destNum == myNodeNum) {
+                packetRepository.migrateChannelsByPSK(oldSettings, newSettings)
+                radioConfigRepository.replaceAllSettings(newSettings)
+            }
+            _radioConfigState.update { it.copy(channelList = newSettings) }
+        }
+    }
+
+    private suspend fun reconcileInterruptedManualChannelUpdate(
+        destNum: Int,
+        oldSettings: List<ChannelSettings>,
+        appliedSettings: List<ChannelSettings>,
+    ) {
+        withContext(NonCancellable) {
+            Logger.w { "Reconciling interrupted manual channel update appliedSettings=${appliedSettings.size}" }
+            if (destNum == myNodeNum) {
+                packetRepository.migrateChannelsByPSK(oldSettings, appliedSettings)
+                radioConfigRepository.replaceAllSettings(appliedSettings)
+            }
+            _radioConfigState.update { it.copy(channelList = appliedSettings) }
+        }
     }
 
     fun setConfig(config: Config) {
@@ -553,11 +637,62 @@ open class RadioConfigViewModel(
         }
     }
 
-    fun exportSecurityConfig(uri: CommonUri, securityConfig: Config.SecurityConfig) {
-        safeLaunch(tag = "exportSecurityConfig") {
-            fileService.write(uri) { sink ->
-                exportSecurityConfigUseCase(sink, securityConfig).onSuccess { /* Success */ }.onFailure { throw it }
+    /** Whether an encrypted key backup exists for the node currently being configured. */
+    fun securityKeyBackupExists(): Boolean {
+        val nodeNum = destNum ?: destNode.value?.num ?: return false
+        return securityKeyBackupStore.get(nodeNum) != null
+    }
+
+    /** Saves the node's current public/private keys to OS-backed encrypted storage, keyed by node number. */
+    fun backupSecurityKeys(securityConfig: Config.SecurityConfig, onComplete: () -> Unit = {}) {
+        val nodeNum = destNum ?: destNode.value?.num ?: return
+        safeLaunch(tag = "backupSecurityKeys") {
+            // Guard against the empty SecurityConfig() fallback: backing up blanks and later restoring them would
+            // overwrite the device's real keys.
+            if (securityConfig.public_key.size == 0 || securityConfig.private_key.size == 0) {
+                snackbarManager.showSnackbar(message = UiText.Resource(Res.string.key_backup_restore_failed).resolve())
+                return@safeLaunch
             }
+            securityKeyBackupStore.save(
+                nodeNum = nodeNum,
+                publicKeyBase64 = securityConfig.public_key.base64(),
+                privateKeyBase64 = securityConfig.private_key.base64(),
+                timestamp = nowMillis,
+            )
+            snackbarManager.showSnackbar(message = UiText.Resource(Res.string.key_backup_saved).resolve())
+            onComplete()
+        }
+    }
+
+    /** Restores the previously backed-up keys for this node and pushes them to the device via admin config. */
+    fun restoreSecurityKeys() {
+        val nodeNum = destNum ?: destNode.value?.num ?: return
+        safeLaunch(tag = "restoreSecurityKeys") {
+            val stored = securityKeyBackupStore.get(nodeNum)
+            if (stored == null) {
+                snackbarManager.showSnackbar(message = UiText.Resource(Res.string.key_backup_not_found).resolve())
+                return@safeLaunch
+            }
+            importSecurityConfigUseCase(stored)
+                .onSuccess {
+                    setConfig(Config(security = it))
+                    snackbarManager.showSnackbar(message = UiText.Resource(Res.string.key_backup_restored).resolve())
+                }
+                .onFailure {
+                    snackbarManager.showSnackbar(
+                        message = UiText.Resource(Res.string.key_backup_restore_failed).resolve(),
+                    )
+                }
+        }
+    }
+
+    /** Deletes the encrypted key backup for this node, if any. */
+    fun deleteSecurityKeyBackup(onComplete: () -> Unit = {}) {
+        val nodeNum = destNum ?: destNode.value?.num ?: return
+        safeLaunch(tag = "deleteSecurityKeyBackup") {
+            securityKeyBackupStore.delete(nodeNum)
+            snackbarManager.showSnackbar(message = UiText.Resource(Res.string.key_backup_deleted).resolve())
+            onComplete()
         }
     }
 
@@ -567,7 +702,7 @@ open class RadioConfigViewModel(
     }
 
     fun clearPacketResponse() {
-        requestIds.value = hashSetOf()
+        clearRequestIds()
         _radioConfigState.update { it.copy(responseState = ResponseState.Empty) }
     }
 
@@ -584,6 +719,13 @@ open class RadioConfigViewModel(
 
     fun setResponseStateLoading(route: Enum<*>) {
         val destNum = destNum ?: destNode.value?.num ?: return
+
+        // A module without a per-module get (no ModuleConfigType, e.g. MeshBeacon) reads from the connect-time config
+        // sync — just select the route and render, skipping the loading/request round-trip that would never complete.
+        if (route is ModuleRoute && !route.refreshable) {
+            _radioConfigState.update { it.copy(route = route.name, responseState = ResponseState.Empty) }
+            return
+        }
 
         _radioConfigState.update { it.copy(route = route.name, responseState = ResponseState.Loading()) }
 
@@ -672,6 +814,38 @@ open class RadioConfigViewModel(
         }
     }
 
+    private fun beginManualChannelBatch(total: Int): Boolean {
+        if (hasUnrelatedPendingRequest() || hasPendingRequestRegistration()) {
+            Logger.w { "Manual channel update skipped while another radio request is pending" }
+            return false
+        }
+        manualChannelBatchEnqueueing = true
+        _radioConfigState.update { state ->
+            state.copy(route = "", responseState = ResponseState.Loading(total = total))
+        }
+        return true
+    }
+
+    private fun finishManualChannelBatch() {
+        manualChannelBatchEnqueueing = false
+        if (requestIds.value.isEmpty()) {
+            setResponseStateSuccess()
+        }
+    }
+
+    private fun abortManualChannelBatch(batchRequestIds: Set<Int>) {
+        manualChannelBatchEnqueueing = false
+        removeRequestIds(batchRequestIds)
+    }
+
+    private fun completeSetRequestOrProgressBatch() {
+        if (manualChannelBatchEnqueueing) {
+            incrementCompleted()
+        } else {
+            setResponseStateSuccess()
+        }
+    }
+
     protected fun setResponseStateSuccess() {
         _radioConfigState.update { state ->
             if (state.responseState is ResponseState.Loading) {
@@ -704,7 +878,8 @@ open class RadioConfigViewModel(
     }
 
     private fun registerRequestId(packetId: Int) {
-        requestIds.update { it.apply { add(packetId) } }
+        requestTimeoutJobs.remove(packetId)?.cancel()
+        requestIds.update { it.withPacketId(packetId) }
         _radioConfigState.update { state ->
             if (state.responseState is ResponseState.Loading) {
                 val total = maxOf(requestIds.value.size, state.responseState.total)
@@ -718,15 +893,46 @@ open class RadioConfigViewModel(
         }
 
         val requestTimeout = 30.seconds
-        safeLaunch(tag = "requestTimeout") {
-            delay(requestTimeout)
-            if (requestIds.value.contains(packetId)) {
-                requestIds.update { it.apply { remove(packetId) } }
-                if (requestIds.value.isEmpty()) {
-                    sendError(Res.string.timeout)
+        requestTimeoutJobs[packetId] =
+            safeLaunch(tag = "requestTimeout") {
+                delay(requestTimeout)
+                if (requestIds.value.contains(packetId)) {
+                    removeRequestId(packetId)
+                    if (requestIds.value.isEmpty()) {
+                        sendError(Res.string.timeout)
+                    }
                 }
             }
-        }
+    }
+
+    private fun registerManualChannelBatchRequestId(packetId: Int) {
+        manualChannelBatchRequestIds.add(packetId)
+        registerRequestId(packetId)
+    }
+
+    private fun hasUnrelatedPendingRequest(): Boolean = requestIds.value.any { it !in manualChannelBatchRequestIds }
+
+    private fun hasPendingRequestRegistration(): Boolean = requestIds.value.isEmpty() &&
+        manualChannelBatchRequestIds.isEmpty() &&
+        radioConfigState.value.responseState is ResponseState.Loading
+
+    private fun clearRequestIds() {
+        requestTimeoutJobs.values.forEach { it.cancel() }
+        requestTimeoutJobs.clear()
+        manualChannelBatchRequestIds.clear()
+        requestIds.value = hashSetOf()
+    }
+
+    private fun removeRequestId(packetId: Int) {
+        requestTimeoutJobs.remove(packetId)?.cancel()
+        manualChannelBatchRequestIds.remove(packetId)
+        requestIds.update { it.withoutPacketId(packetId) }
+    }
+
+    private fun removeRequestIds(packetIds: Set<Int>) {
+        packetIds.forEach { requestTimeoutJobs.remove(it)?.cancel() }
+        manualChannelBatchRequestIds.removeAll(packetIds)
+        requestIds.update { ids -> ids.withoutPacketIds(packetIds) }
     }
 
     private fun processPacketResponse(packet: MeshPacket) {
@@ -745,9 +951,9 @@ open class RadioConfigViewModel(
             is RadioResponseResult.Success -> {
                 if (route.isEmpty()) {
                     val data = packet.decoded!!
-                    requestIds.update { it.apply { remove(data.request_id) } }
+                    removeRequestId(data.request_id)
                     if (requestIds.value.isEmpty()) {
-                        setResponseStateSuccess()
+                        completeSetRequestOrProgressBatch()
                     } else {
                         incrementCompleted()
                     }
@@ -870,14 +1076,79 @@ open class RadioConfigViewModel(
         }
 
         val requestId = packet.decoded?.request_id ?: return
-        requestIds.update { it.apply { remove(requestId) } }
+        removeRequestId(requestId)
 
         if (requestIds.value.isEmpty()) {
             if (route.isNotEmpty() && !AdminRoute.entries.any { it.name == route }) {
                 clearPacketResponse()
             } else if (route.isEmpty()) {
-                setResponseStateSuccess()
+                completeSetRequestOrProgressBatch()
             }
         }
     }
 }
+
+internal data class ManualChannelUpdateResult(val packetIds: List<Int>, val finalSettings: List<ChannelSettings>)
+
+internal data class InterruptedManualChannelUpdate(
+    val appliedSettings: List<ChannelSettings>,
+    val appliedWriteCount: Int,
+)
+
+internal suspend fun applyManualChannelUpdatePlan(
+    updatePlan: List<Channel>,
+    currentSettings: List<ChannelSettings>,
+    finalSettings: List<ChannelSettings>,
+    writeChannel: suspend (Channel) -> Int,
+    registerRequestId: (Int) -> Unit,
+    onInterrupted: suspend (InterruptedManualChannelUpdate) -> Unit = {},
+    writeDelay: Duration = MANUAL_CHANNEL_WRITE_DELAY,
+    delayFn: suspend (Duration) -> Unit = { delay(it) },
+): ManualChannelUpdateResult {
+    val packetIds = mutableListOf<Int>()
+    val appliedSettings = currentSettings.toMutableList()
+    var appliedWriteCount = 0
+    var updateComplete = false
+    try {
+        for ((index, channel) in updatePlan.withIndex()) {
+            val packetId = writeChannel(channel)
+            packetIds.add(packetId)
+            registerRequestId(packetId)
+            appliedSettings.applyManualChannelWrite(channel)
+            appliedWriteCount++
+            if (index < updatePlan.lastIndex) {
+                delayFn(writeDelay)
+            }
+        }
+        updateComplete = true
+    } finally {
+        if (!updateComplete && appliedWriteCount > 0) {
+            onInterrupted(
+                InterruptedManualChannelUpdate(
+                    appliedSettings = appliedSettings.toList(),
+                    appliedWriteCount = appliedWriteCount,
+                ),
+            )
+        }
+    }
+    return ManualChannelUpdateResult(packetIds = packetIds, finalSettings = finalSettings)
+}
+
+private fun MutableList<ChannelSettings>.applyManualChannelWrite(channel: Channel) {
+    while (size <= channel.index) {
+        add(ChannelSettings())
+    }
+    this[channel.index] =
+        if (channel.role == Channel.Role.DISABLED) {
+            ChannelSettings()
+        } else {
+            channel.settings ?: ChannelSettings()
+        }
+}
+
+private fun HashSet<Int>.withPacketId(packetId: Int): HashSet<Int> = HashSet(this).apply { add(packetId) }
+
+private fun HashSet<Int>.withoutPacketId(packetId: Int): HashSet<Int> = HashSet(this).apply { remove(packetId) }
+
+private fun HashSet<Int>.withoutPacketIds(packetIds: Set<Int>): HashSet<Int> =
+    HashSet(this).apply { removeAll(packetIds) }

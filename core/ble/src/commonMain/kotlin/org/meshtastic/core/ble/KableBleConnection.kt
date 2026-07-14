@@ -29,15 +29,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.meshtastic.core.common.util.ioDispatcher
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -48,6 +53,11 @@ class KableBleService(private val peripheral: Peripheral, private val serviceUui
     override fun hasCharacteristic(characteristic: BleCharacteristic): Boolean = peripheral.services.value?.any { svc ->
         svc.serviceUuid == serviceUuid && svc.characteristics.any { it.characteristicUuid == characteristic.uuid }
     } == true
+
+    override fun discoveredCharacteristicUuids(): List<Uuid> = peripheral.services.value
+        ?.find { it.serviceUuid == serviceUuid }
+        ?.characteristics
+        ?.map { it.characteristicUuid } ?: emptyList()
 
     override fun observe(characteristic: BleCharacteristic) =
         peripheral.observe(characteristicOf(serviceUuid, characteristic.uuid))
@@ -245,6 +255,7 @@ class KableBleConnection(private val scope: CoroutineScope, private val loggingC
         _deviceFlow.emit(null)
     }
 
+    @Suppress("ThrowsCount")
     override suspend fun <T> profile(
         serviceUuid: Uuid,
         timeout: Duration,
@@ -253,7 +264,34 @@ class KableBleConnection(private val scope: CoroutineScope, private val loggingC
         val p = peripheral ?: error("Not connected")
         val cScope = connectionScope ?: error("No active connection scope")
         val service = KableBleService(p, serviceUuid)
-        return withTimeout(timeout) { cScope.setup(service) }
+        return withTimeout(timeout) {
+            // Shared BLE profile guard: wait for Kable service discovery before handing out the service, and map a
+            // connection-scope shutdown during caller setup to NotConnectedException instead of waiting for timeout.
+            withContext(ioDispatcher) {
+                val profileExecution = async {
+                    p.services.first { it != null }
+                    cScope.setup(service)
+                }
+
+                val disconnectHandle =
+                    cScope.coroutineContext.job.invokeOnCompletion {
+                        profileExecution.cancel(CancellationException("Connection lost during BLE profile execution"))
+                    }
+
+                try {
+                    profileExecution.await()
+                } catch (e: CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                    if (!cScope.coroutineContext.job.isActive) {
+                        throw NotConnectedException("Connection lost during BLE profile execution")
+                    }
+                    throw e
+                } finally {
+                    disconnectHandle.dispose()
+                    profileExecution.cancel()
+                }
+            }
+        }
     }
 
     override fun maximumWriteValueLength(writeType: BleWriteType): Int? = peripheral?.negotiatedMaxWriteLength()
@@ -261,6 +299,8 @@ class KableBleConnection(private val scope: CoroutineScope, private val loggingC
     override fun requestHighConnectionPriority(): Boolean = peripheral?.requestHighConnectionPriority() == true
 
     override fun requestBalancedConnectionPriority(): Boolean = peripheral?.requestBalancedConnectionPriority() == true
+
+    override fun invalidateServiceCache(): Boolean = peripheral?.refreshGattCache() == true
 
     /** Ensures the previous peripheral's GATT resources are fully released. */
     private suspend fun cleanUpPeripheral(tag: String) {

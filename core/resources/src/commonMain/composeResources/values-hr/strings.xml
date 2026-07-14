@@ -64,6 +64,7 @@
     <string name="delivery_confirmed">Isporučeno</string>
     <string name="desc_node_filter_clear">očisti filter čvorova</string>
     <string name="description">Opis</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Detalji</string>
     <!-- DEVICE -->
@@ -81,7 +82,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Pogreška</string>
     <string name="error_duty_cycle">Dosegnuto je ograničenje radnog ciklusa. Trenutačno nije moguće poslati poruke, pokušajte ponovno kasnije.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Vraćanje na tvorničke postavke</string>
     <!-- FILTER -->
     <string name="filter_icon">Filtriraj</string>
@@ -89,6 +89,7 @@
     <string name="firmware_old">Firmware radija je prestar za komunikaciju s ovom aplikacijom. Za više informacija posjetite <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">naš vodič za instalaciju firmwarea</a>.</string>
     <string name="firmware_too_old">Potrebno ažuriranje firmwarea.</string>
     <string name="firmware_update_failed">Ažuriranje neuspjelo</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <!-- GPIO -->
     <!-- IGNORE -->
@@ -98,6 +99,7 @@
     <string name="interval_unset">Nepostavljeno</string>
     <string name="intro_show">Prikaži uvod</string>
     <string name="ip_address">IP Adresa:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -122,6 +124,7 @@
     <string name="map_subDescription">smjer: %1$d° udaljenost: %2$s</string>
     <string name="map_tile_download_estimate">Procjena preuzimanja:</string>
     <string name="map_tile_source">Izvor karte</string>
+    <!-- MESH -->
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_app_name">Meshtastic</string>
@@ -208,6 +211,7 @@
     <string name="share">Podijeli</string>
     <!-- SHOW -->
     <string name="shutdown">Isključi</string>
+    <!-- SITE -->
     <!-- TAK -->
     <string name="tak_team_red">Crveno</string>
     <string name="theme">Tema</string>
@@ -218,6 +222,7 @@
     <string name="traceroute">Traceroute</string>
     <string name="traceroute_log">Traceroute</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="two_days">48 Sati</string>
     <!-- UNKNOWN -->
@@ -226,6 +231,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">putem MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Obriši putnu točku?</string>
     <string name="waypoint_edit">Uredi putnu točku</string>
     <string name="waypoint_new">Nova putna točka</string>

@@ -2,7 +2,7 @@
 title: Settings — Radio & User
 parent: User Guide
 nav_order: 7
-last_updated: 2026-05-20
+last_updated: 2026-07-08
 description: Configure your radio hardware, LoRa presets, user profile, position sharing, power management, and security.
 aliases:
   - Einstellungen
@@ -59,20 +59,22 @@ After modifying settings, tap **Save** to write the configuration to your radio.
 
 | Preset                           | Bereich                 | Geschwindigkeit           | SNR Limit                | Best For                                                                                                 |
 | -------------------------------- | ----------------------- | ------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
-| SHORT_TURBO | ~1 km   | 21.9 kbps | −5 dB                    | Dense urban with line-of-sight; data-heavy applications                                                  |
+| SHORT_TURBO | ~1 km   | 21.9 kbps | −7,5 dB                  | Dense urban with line-of-sight; data-heavy applications                                                  |
 | Short Fast                       | ~3 km   | 10.9 kbps | −7.5 dB  | Urban neighborhoods; buildings within a few blocks                                                       |
 | Short Slow                       | ~5 km   | 5.5 kbps  | −10 dB                   | Suburban short-range; moderate building density                                                          |
-| MEDIUM_FAST | ~5 km   | 5.5 kbps  | −10 dB                   | Suburban areas; moderate building density                                                                |
-| MEDIUM_SLOW | ~8 km   | 1.1 kbps  | −12.5 dB | Suburban/rural; moderate range with slower speed                                                         |
-| Long Turbo                       | ~10 km  | 4.4 kbps  | −10 dB                   | Similar range to Long Fast but with 500 kHz bandwidth; faster throughput                                 |
-| Long Fast                        | ~10 km  | 1.1 kbps  | −12.5 dB | **General use (default)** — balanced range and speed                                  |
-| Long Moderate                    | ~20 km  | 0,34 kbit/s               | −15 dB                   | Rural with some terrain; occasional use                                                                  |
-| Lite Fast                        | ~5 km   | 5.5 kbps  | −10 dB                   | EU 866 MHz SRD band (125 kHz BW); comparable to Medium Fast                           |
-| Lite Slow                        | ~10 km  | 1.1 kbps  | −12.5 dB | EU 866 MHz SRD band (125 kHz BW); comparable to Long Fast                             |
+| MEDIUM_FAST | ~5 km   | 5.5 kbps  | −12.5 dB | Suburban areas; moderate building density                                                                |
+| MEDIUM_SLOW | ~8 km   | 1.1 kbps  | −15 dB                   | Suburban/rural; moderate range with slower speed                                                         |
+| Long Turbo                       | ~10 km  | 4.4 kbps  | −12.5 dB | Similar range to Long Fast but with 500 kHz bandwidth; faster throughput                                 |
+| Long Fast                        | ~10 km  | 1.1 kbps  | −17.5 dB | **General use (default)** — balanced range and speed                                  |
+| Long Moderate                    | ~20 km  | 0,34 kbit/s               | −17.5 dB | Rural with some terrain; occasional use                                                                  |
+| Lite Fast                        | ~5 km   | 5.5 kbps  | −12.5 dB | EU 866 MHz SRD band (125 kHz BW); comparable to Medium Fast                           |
+| Lite Slow                        | ~10 km  | 1.1 kbps  | −15 dB                   | EU 866 MHz SRD band (125 kHz BW); comparable to Long Fast                             |
 | Narrow Fast                      | ~5 km   | 2.7 kbps  | −10 dB                   | EU 868 MHz band (62.5 kHz BW); avoids interference with other devices |
 | Narrow Slow                      | ~10 km  | 1.1 kbps  | −12.5 dB | EU 868 MHz band (62.5 kHz BW); comparable to Long Fast                |
-| ~~Long Slow~~                    | ~30 km  | 0,18 kbit/s               | −17.5 dB | ⚠️ **Deprecated** — still selectable but may be removed in a future firmware release                     |
+| ~~Long Slow~~                    | ~30 km  | 0,18 kbit/s               | −20 dB                   | ⚠️ **Deprecated** — still selectable but may be removed in a future firmware release                     |
 | ~~Very Long Slow~~               | ~40+ km | 0.09 kbps | −20 dB                   | ⚠️ **Deprecated** — still selectable but may be removed in a future firmware release                     |
+
+> ℹ️ **Note:** This table uses the common short names. In the app's preset dropdown they read as **Short Range - Fast**, **Long Range - Fast**, **Lite - Fast**, **Narrow - Fast**, and so on.
 
 #### Choosing a Modem Preset
 
@@ -85,7 +87,7 @@ The modem preset controls the fundamental tradeoff between **range** and **data 
 
 - **Urban mesh (many nodes, short distances):** Use **Long Fast** (default) or **Short Fast**. Higher speed means less airtime congestion when many nodes share the channel.
 - **Rural/sparse mesh (few nodes, long distances):** Use **Long Moderate**. Range matters more than speed when nodes are far apart.
-- **EU 866/868 MHz regulatory compliance:** Use **Lite Fast**, **Lite Slow**, **Narrow Fast**, or **Narrow Slow** — these are optimized for the EU SRD/868 MHz bands with narrower bandwidths.
+- **Einhaltung der EU-Vorschriften für 866/868 MHz:** Verwenden Sie **Lite Fast**, **Lite Slow**, **Narrow Fast** oder **Narrow Slow** – diese sind für die EU-SRD-/868-MHz-Bänder mit geringerer Bandbreite optimiert.
 - **Fixed infrastructure links:** Use **Short Turbo** or **Long Turbo** for dedicated point-to-point links with good antennas and line-of-sight.
 - **Mixed environments:** Stick with **Long Fast** — it's the community default and ensures compatibility with others in your area.
 

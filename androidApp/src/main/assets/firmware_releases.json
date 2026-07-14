@@ -189,106 +189,136 @@
   },
   "pullRequests": [
     {
-      "id": "10839",
-      "title": "second pass adding beacons admin",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10839",
+      "id": "10996",
+      "title": "Reduce flash usage of GPS variants by deferring unused GeoCoord conversions",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10996",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10807",
-      "title": "Add DeltaPlusProto Edict board variant",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10807",
+      "id": "10995",
+      "title": "feat: populate MyNodeInfo.device_id on all platforms",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10995",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10994",
+      "title": "Remove UA_868 as obsolete",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10994",
       "zip_url": "https://discord.com/invite/meshtastic"
     },
     {
-      "id": "10802",
-      "title": "Refactor SerialConsole to simplify timeout handling",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10802",
+      "id": "10990",
+      "title": "Auto-enable nanopb PB_NO_ERRMSG when DEBUG_MUTE is set",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10990",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10792",
-      "title": "Add helpful checks of channel names and PSK",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10792",
+      "id": "10984",
+      "title": "Draft: Restore XEdDSA material in keygen-excluded identity loads",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10984",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10791",
-      "title": "T5S3 ePaper build fix ",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10791",
+      "id": "10972",
+      "title": "Authorize signed plaintext remote admin in licensed mode",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10972",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10787",
-      "title": "Add TiltTelemetryModule for LIS3DH accelerometer mounts",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10787",
+      "id": "10969",
+      "title": "Sign plaintext packets in licensed mode",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10969",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10968",
+      "title": "Update LovyanGFX to v1.2.25",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10968",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10962",
+      "title": "Extra repeats",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10962",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10961",
+      "title": "stm32wl: add hardware RTC support (rak3172)",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10961",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10954",
+      "title": "Flatpak: rename Meshtastic -> MeshtasticD",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10954",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10949",
+      "title": "Make Safe File actually safe",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10949",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10947",
+      "title": "Fixed pin state setup when SX126X_ANT_SW is defined",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10947",
       "zip_url": "https://discord.com/invite/meshtastic"
     },
     {
-      "id": "10784",
-      "title": "build(native-macos): enable UDP multicast mesh",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10784",
+      "id": "10936",
+      "title": "Snake!",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10936",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10767",
-      "title": "Provide relay node info for outbound packets",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10767",
+      "id": "10935",
+      "title": "Fix size report stale baseline",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10935",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10928",
+      "title": "Add chunked PhoneAPI transport payloads",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10928",
       "zip_url": "https://discord.com/invite/meshtastic"
     },
     {
-      "id": "10729",
-      "title": "Update meshtastic/web to v2.7.1",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10729",
+      "id": "10926",
+      "title": "WIP: Big Display Node",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10926",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
     },
     {
-      "id": "10725",
-      "title": "feat(mesh): Shift mobile roles contention window to lower priority (10687)",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10725",
+      "id": "10921",
+      "title": "Align Base UI message status wording",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10921",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10920",
+      "title": "Add waypoint & geofence support with notifications for BaseUI and InkHUD",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10920",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10918",
+      "title": "Add RAK WisMesh Repeater Mini V2 and HP variants",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10918",
+      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
+    },
+    {
+      "id": "10917",
+      "title": "Firmware for Seeed XIAO ESP32C6 and WIO-SX1262 for XIAO",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10917",
       "zip_url": "https://discord.com/invite/meshtastic"
     },
     {
-      "id": "10724",
-      "title": "Use upstream fusion library",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10724",
+      "id": "10915",
+      "title": "Update TDK InvenSense ICM42670P to v1.0.9",
+      "page_url": "https://github.com/meshtastic/firmware/pull/10915",
       "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
-    },
-    {
-      "id": "10719",
-      "title": "Pr2.5 tmm hop trimming",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10719",
-      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
-    },
-    {
-      "id": "10718",
-      "title": "Monotonic time & prep for router graceful retirement",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10718",
-      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
-    },
-    {
-      "id": "10717",
-      "title": "Update US LoRa modem preset to region defaults for compliance",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10717",
-      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
-    },
-    {
-      "id": "10715",
-      "title": "Fixes on 0x69 address detection",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10715",
-      "zip_url": "https://img.shields.io/badge/Flash_this_PR_in_the_Web_Flasher-2C2D3C?style=for-the-badge"
-    },
-    {
-      "id": "10711",
-      "title": "Fix SX126x daemon abort when Tx power exceeds chip limit",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10711",
-      "zip_url": "https://discord.com/invite/meshtastic"
-    },
-    {
-      "id": "10689",
-      "title": "Heltec Vision Master E213: enable 32768hz crystal osc for rtc",
-      "page_url": "https://github.com/meshtastic/firmware/pull/10689",
-      "zip_url": "https://discord.com/invite/meshtastic"
     }
   ]
 }

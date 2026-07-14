@@ -2,7 +2,7 @@
 title: Haku
 parent: Käyttöopas
 nav_order: 12
-last_updated: 2026-06-11
+last_updated: 2026-07-08
 description: Tutki mesh-verkkoasi — paikallinen verkon haku, reitinselvitykset, naapurikartat ja radion hakuun liittyvät työkalut.
 aliases:
   - mesh-verkon haku
@@ -44,7 +44,6 @@ Ennen aloittamista määritä nämä asetukset:
 **Käynnistä**-painike ei ole käytettävissä ja näyttää syyn, kunnes skannaus voidaan suorittaa. Yleisiä syitä, miksi se on pois käytöstä:
 
 - Laite **ei ole yhdistetty**
-- Nykyinen kanava käyttää **oletuskanava-avainta** (käytä ensin yksilöllistä avainta — katso [Viestit ja kanavat](messages-and-channels)).
 - **Esiasetuksia ei ole valittu** skannattavaksi.
 - Valittu esiasetus käyttää **2,4 GHz -taajuutta**, jota laitteistosi ei tue.
 
@@ -114,12 +113,12 @@ Sinä → Radio A (SNR: 8.5, RSSI: -95) → Radio B (SNR: 5.2, RSSI: -108) → K
 
 Jokainen hyppy on välittäjä-radio, joka lähetti viestin eteenpäin. Jokaisen hypyn SNR- ja RSSI-arvot kertovat kyseisen yhteysvälin laadusta.
 
-| Mitä kannattaa tarkkailla                                                                            | Mitä se tarkoittaa                                                               |
-| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Kaikki hypyt näyttävät hyvää SNR-arvoa (> 5 dB)                                   | Hyvä reitti — viestit kulkevat luotettavasti                                     |
-| Yksi hyppy näyttää huonon SNR:n (< 0 dB) | Heikko yhteys — tämä välityssegmentti on haavoittuva                             |
-| Useita hyppyjä (4+)                                                               | Pitkä reitti — harkitse radion siirtämistä sen lyhentämiseksi                    |
-| Eri reitti uudelleenyrityksellä                                                                      | Verkko mukautuu — useita reittejä on olemassa (tämä on hyvä!) |
+| Mitä kannattaa tarkkailla                                                                                        | Mitä se tarkoittaa                                                               |
+| ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Kaikki hypyt näyttävät hyvän SNR:n (≥ −7 dB, vihreä)                          | Hyvä reitti — viestit kulkevat luotettavasti                                     |
+| Yksi hyppy näyttää huonon SNR:n (< −15 dB, punainen) | Heikko yhteys — tämä välityssegmentti on haavoittuva                             |
+| Useita hyppyjä (4+)                                                                           | Pitkä reitti — harkitse radion siirtämistä sen lyhentämiseksi                    |
+| Eri reitti uudelleenyrityksellä                                                                                  | Verkko mukautuu — useita reittejä on olemassa (tämä on hyvä!) |
 
 > Vinkki: Aja reitinselvitys useita kertoja muutaman minuutin aikana. Jos reitti muuttuu, verkossasi on varareittejä — merkki hyvin kytketystä verkosta.
 

@@ -154,6 +154,16 @@ interface NodeRepository {
     suspend fun setNodeNotes(num: Int, notes: String)
 
     /**
+     * Sets one user-editable power-channel label (e.g. "Solar", "Battery"). The read-modify-write is atomic, so
+     * concurrent edits to different channels don't clobber each other.
+     *
+     * @param num The node number.
+     * @param channelIndex The 0-based power channel index.
+     * @param label The label to persist (blank clears it).
+     */
+    suspend fun updatePowerChannelLabel(num: Int, channelIndex: Int, label: String)
+
+    /**
      * Upserts a [Node] into the persistent database.
      *
      * @param node The [Node] model to save.
@@ -163,9 +173,14 @@ interface NodeRepository {
     /**
      * Installs initial configuration data (local info and remote nodes) into the database.
      *
-     * Used during the initial connection handshake.
+     * Used during the initial connection handshake. When the connected device's identity changed since the last session
+     * (firmware 2.8 derives the node number from the public key, and an erase-and-reflash mints new keys), the stale
+     * identity is migrated or removed as part of the install.
+     *
+     * @return node numbers whose rows were removed by that identity migration, so callers can evict them from in-memory
+     *   caches.
      */
-    suspend fun installConfig(mi: MyNodeInfo, nodes: List<Node>)
+    suspend fun installConfig(mi: MyNodeInfo, nodes: List<Node>): List<Int>
 
     /**
      * Persists hardware metadata for a node.

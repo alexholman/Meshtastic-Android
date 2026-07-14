@@ -219,10 +219,11 @@ private fun AdvancedSection(isManaged: Boolean, isOtaCapable: Boolean, enabled: 
             onClick = { onNavigate(SettingsRoute.TakServer) },
         )
 
+        // Always enabled: the Debug Panel reads app-local logs only — no radio connection,
+        // pending config response, or managed-mode restriction applies to it.
         ListItem(
             text = stringResource(Res.string.debug_panel),
             leadingIcon = MeshtasticIcons.BugReport,
-            enabled = enabled,
             onClick = { onNavigate(SettingsRoute.DebugPanel) },
         )
     }

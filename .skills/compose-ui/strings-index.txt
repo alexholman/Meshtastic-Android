@@ -10,6 +10,7 @@ a11y_node_offline
 a11y_node_online
 a11y_node_role
 a11y_node_signal
+a11y_nodes_at_hop
 accept
 acknowledgements
 ### ACTION ###
@@ -21,6 +22,8 @@ action_select_message
 action_select_network
 action_send_reply
 action_show_message_status
+action_toggle_translation
+action_translate_message
 actions
 adc_multiplier_override
 adc_multiplier_override_ratio
@@ -91,12 +94,15 @@ app_settings
 app_too_old
 app_version
 apply
+aqi
 are_you_sure
 are_you_sure_change_default
 audio
 audio_config
 available_pins
 back
+backup_keys
+backup_keys_confirmation
 backup_restore
 bad
 bandwidth
@@ -117,6 +123,7 @@ bluetooth_feature_config_description
 bluetooth_feature_discovery
 bluetooth_feature_discovery_description
 bluetooth_permission
+bluetooth_scan_missing_permission
 bluetooth_scan_start_failed
 bold_heading
 bonding_failed_permissions
@@ -192,6 +199,8 @@ client_notification
 close
 close_selection
 co2
+co2_humidity
+co2_temperature
 codec_2_enabled
 codec2_sample_rate
 coding_rate
@@ -303,6 +312,10 @@ debug_store_logs_summary
 debug_store_logs_title
 debug_tab_app_logs
 debug_tab_packets
+deep_link_connect_message
+deep_link_connect_title
+deep_link_disconnect_message
+deep_link_disconnect_title
 default_
 default_mqtt_address
 ### DELETE ###
@@ -310,6 +323,8 @@ delete
 delete_custom_tile_source
 delete_for_everyone
 delete_for_me
+delete_key_backup
+delete_key_backup_confirmation
 delete_messages
 delete_messages_title
 delete_selection
@@ -319,10 +334,14 @@ demo_mode
 demo_mode_replay
 desc_node_filter_clear
 description
+### DESKTOP ###
 desktop_notification_title
 desktop_tray_quit
 desktop_tray_show
 desktop_tray_tooltip
+desktop_update_available_message
+desktop_update_available_title
+desktop_update_download
 details
 detection_sensor
 detection_sensor_config
@@ -351,6 +370,7 @@ device_theme_language
 dew_point
 direct_message
 direct_message_key
+direct_messages
 discard_changes
 disconnect
 disconnected
@@ -368,6 +388,7 @@ discovery_dwell_time_description
 discovery_empty_history
 discovery_export_report
 discovery_history
+discovery_interrupted_scan_restored
 discovery_keep_screen_awake
 discovery_keep_screen_awake_description
 discovery_local_mesh
@@ -393,7 +414,6 @@ discovery_shifting_to
 discovery_start_scan
 discovery_start_scan_disabled
 discovery_start_scan_reason_24ghz_unsupported
-discovery_start_scan_reason_default_key
 discovery_start_scan_reason_no_presets
 discovery_start_scan_reason_not_connected
 discovery_stat_analysis
@@ -534,16 +554,14 @@ establishing_session
 ethernet_config
 ethernet_enabled
 ethernet_ip
+event_use_event_theme
 exchange_position
 expand_chart
 expanded
 expires
-### EXPORT ###
 export_configuration
 export_data_csv
 export_gpx
-export_keys
-export_keys_confirmation
 export_tak_data_package
 external_notification
 external_notification_config
@@ -576,13 +594,25 @@ firebase_link
 ### FIRMWARE ###
 firmware
 firmware_edition
+firmware_event_ended_banner
+firmware_event_ended_button
 firmware_old
+firmware_recovery_banner
+firmware_recovery_ble_failed
+firmware_recovery_button
+firmware_recovery_dismiss
+firmware_recovery_explanation
 firmware_too_old
 firmware_update_almost_there
 firmware_update_alpha
+firmware_update_archive_missing_target
 firmware_update_battery_low
 firmware_update_checking
+firmware_update_confirm_file_button
+firmware_update_confirm_file_message
+firmware_update_confirm_file_title
 firmware_update_connecting_attempt
+firmware_update_context_changed
 firmware_update_copying
 firmware_update_currently_installed
 firmware_update_device
@@ -598,9 +628,11 @@ firmware_update_erasing
 firmware_update_error
 firmware_update_extracting
 firmware_update_failed
+firmware_update_filename_unavailable
 firmware_update_flashing
 firmware_update_hang_tight
 firmware_update_hash_rejected
+firmware_update_invalid_local_file_detail
 firmware_update_keep_device_close
 firmware_update_latest
 firmware_update_local_file
@@ -608,16 +640,23 @@ firmware_update_method_ble
 firmware_update_method_detail
 firmware_update_method_usb
 firmware_update_method_wifi
+firmware_update_missing_target
+firmware_update_nightly
 firmware_update_no_device
 firmware_update_node_info_missing
 firmware_update_not_found_in_release
 firmware_update_ota_failed
+firmware_update_ota_unsupported_reason
 firmware_update_rak4631_bootloader_hint
 firmware_update_rebooting
 firmware_update_release_notes
+firmware_update_requires_bin
+firmware_update_requires_ota_zip
+firmware_update_requires_uf2
 firmware_update_retrieval_failed
 firmware_update_retry
 firmware_update_save_dfu_file
+firmware_update_searching_device
 firmware_update_select_file
 firmware_update_slow_bootloader_hint
 firmware_update_source_local
@@ -632,6 +671,7 @@ firmware_update_unknown_error
 firmware_update_unknown_hardware
 firmware_update_unknown_release
 firmware_update_unsupported_transport
+firmware_update_unsupported_update_method
 firmware_update_uploading
 firmware_update_usb_bootloader_warning
 firmware_update_usb_failed
@@ -647,6 +687,12 @@ fixed_pin
 fixed_position
 flip_screen
 for_more_information_see_our_privacy_policy
+### FORMAT ###
+format_bold
+format_code
+format_italic
+format_link
+format_strikethrough
 fr_HT
 free_memory
 free_memory_description
@@ -661,6 +707,8 @@ generate_input_event_on_press
 generate_qr_code
 ### GEOFENCE ###
 geofence
+geofence_alerts_opt_in
+geofence_alerts_opt_in_desc
 geofence_box_author_confirm
 geofence_box_author_hint
 geofence_box_author_hint_viewport
@@ -701,6 +749,8 @@ hide_layer
 hide_password
 history_return_max
 history_return_window
+hop_histogram_empty
+hop_histogram_title
 hop_limit
 hops_away
 host
@@ -731,6 +781,10 @@ indoor_air_quality_iaq
 info
 input_channel_url
 input_shared_contact_url
+insert
+insert_link_message
+insert_link_title
+insert_link_url_hint
 installed_firmware_version
 internal
 interval_always_on
@@ -742,6 +796,12 @@ ip_address
 ip_port
 ipv4_mode
 json_output_enabled
+### KEY ###
+key_backup_deleted
+key_backup_not_found
+key_backup_restore_failed
+key_backup_restored
+key_backup_saved
 key_verification_final_title
 key_verification_request_title
 key_verification_title
@@ -754,6 +814,7 @@ label_long_slow
 label_long_turbo
 label_medium_fast
 label_medium_slow
+label_medium_turbo
 label_narrow_fast
 label_narrow_slow
 label_short_fast
@@ -888,17 +949,43 @@ match_all
 match_any
 max
 ### MESH ###
+mesh_beacon
+mesh_beacon_broadcast
+mesh_beacon_broadcast_summary
+mesh_beacon_channels_title
+mesh_beacon_interval
+mesh_beacon_interval_error
 mesh_beacon_invitations_title
+mesh_beacon_listen
+mesh_beacon_listen_summary
+mesh_beacon_message
+mesh_beacon_message_error
 mesh_beacon_notification_body
 mesh_beacon_notification_title
+mesh_beacon_offer_add
 mesh_beacon_offer_channel
+mesh_beacon_offer_channel_key
+mesh_beacon_offer_channel_name
 mesh_beacon_offer_discover
 mesh_beacon_offer_dismiss
 mesh_beacon_offer_from_unknown
 mesh_beacon_offer_join
 mesh_beacon_offer_preset
+mesh_beacon_offer_preset_setting
 mesh_beacon_offer_region
+mesh_beacon_offer_region_setting
+mesh_beacon_offer_signal
 mesh_beacon_offer_title
+mesh_beacon_on_preset
+mesh_beacon_on_region
+mesh_beacon_preset_indicator
+mesh_beacon_preset_none
+mesh_beacon_send_as_node
+mesh_beacon_target
+mesh_beacon_target_add
+mesh_beacon_target_channel_index
+mesh_beacon_target_remove
+mesh_beacon_targets
 mesh_map_location
 mesh_map_location_description
 ### MESHTASTIC ###
@@ -919,12 +1006,21 @@ message
 message_delivery_status
 message_device_managed
 message_input_label
+message_routing_error_max_retransmit
+message_routing_error_no_channel
+message_routing_error_pki_failed
+message_routing_error_pki_send_fail_public_key
+message_routing_error_pki_unknown_pubkey
+message_routing_error_too_large
 message_status_delivered
 message_status_enroute
 message_status_queued
+message_status_recipient_delivered
+message_status_relayed_not_confirmed
 message_status_sfpp_confirmed
 message_status_sfpp_routing
 message_status_unknown
+message_translated_label
 messages
 micrograms_per_cubic_meter
 min
@@ -1255,6 +1351,8 @@ requesting_from
 resend
 reset
 reset_to_defaults
+restore_keys
+restore_keys_confirmation
 retry
 ringtone
 ringtone_file_empty
@@ -1387,8 +1485,10 @@ should_update_firmware
 show_all_key_title
 show_iaq_legend
 show_layer
+show_original
 show_password
 show_precision_circle
+show_translation
 show_waypoints
 shutdown
 shutdown_node_name
@@ -1396,6 +1496,32 @@ shutdown_on_power_loss
 shutdown_warning
 signal
 signal_quality
+### SITE ###
+site_planner
+site_planner_antenna_gain_dbi
+site_planner_antenna_height_meters
+site_planner_color_scale
+site_planner_estimate
+site_planner_estimating
+site_planner_failed
+site_planner_frequency_mhz
+site_planner_high_resolution
+site_planner_invalid_latitude
+site_planner_invalid_longitude
+site_planner_invalid_positive
+site_planner_invalid_rx_sensitivity
+site_planner_max_range_km
+site_planner_rx_height_meters
+site_planner_rx_sensitivity_dbm
+site_planner_section_display
+site_planner_section_receiver
+site_planner_section_simulation
+site_planner_section_transmitter
+site_planner_subtitle
+site_planner_tx_power_watts
+site_planner_use_current_location
+site_planner_use_map_center
+site_planner_use_node_location
 skip
 slot
 smart_position
@@ -1529,6 +1655,14 @@ traffic_management_rate_limit_max_packets
 traffic_management_rate_limit_window
 traffic_management_router_preserve_hops
 traffic_management_unknown_packet_threshold
+translate
+### TRANSLATION ###
+translation_download_message
+translation_download_title
+translation_downloading
+translation_failed
+translation_model_download_failed
+translation_not_required
 transmit_over_lora
 ### TRANSPORT ###
 transport
@@ -1601,10 +1735,14 @@ voltage
 wait_for_bluetooth_duration_seconds
 wake_on_tap_or_motion
 warning
+### WAYPOINT ###
 waypoint_delete
 waypoint_edit
 waypoint_new
 waypoint_received
+waypoint_recipient_broadcast
+waypoint_recipient_channel
+waypoint_send_to
 weight
 ### WIFI ###
 wifi_config

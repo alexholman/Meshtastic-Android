@@ -47,9 +47,11 @@ import org.meshtastic.core.model.TracerouteMapAvailability
 import org.meshtastic.core.model.evaluateTracerouteMapAvailability
 import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.core.model.util.dispatchMeshtasticUri
+import org.meshtastic.core.model.util.isOtaStatusNotification
 import org.meshtastic.core.navigation.DeepLinkRouter
 import org.meshtastic.core.repository.EventFirmwareRepository
 import org.meshtastic.core.repository.FirmwareReleaseRepository
+import org.meshtastic.core.repository.FirmwareUpdateStatusRepository
 import org.meshtastic.core.repository.LockdownCoordinator
 import org.meshtastic.core.repository.LockdownPassphraseStore
 import org.meshtastic.core.repository.MeshLogRepository
@@ -88,6 +90,7 @@ class UIViewModel(
     meshLogRepository: MeshLogRepository,
     firmwareReleaseRepository: FirmwareReleaseRepository,
     private val eventFirmwareRepository: EventFirmwareRepository,
+    private val firmwareUpdateStatusRepository: FirmwareUpdateStatusRepository,
     private val uiPrefs: UiPrefs,
     private val notificationManager: NotificationManager,
     packetRepository: PacketRepository,
@@ -127,6 +130,11 @@ class UIViewModel(
     }
 
     val theme: StateFlow<Int> = uiPrefs.theme
+
+    /** Opt-out for applying an event edition's ambient theme (accent + typeface) app-wide. */
+    val eventThemeEnabled: StateFlow<Boolean> = uiPrefs.eventThemeEnabled
+
+    fun setEventThemeEnabled(enabled: Boolean) = uiPrefs.setEventThemeEnabled(enabled)
 
     val firmwareEdition = meshLogRepository.getMyNodeInfo().map { nodeInfo -> nodeInfo?.firmware_edition }
 
@@ -256,6 +264,14 @@ class UIViewModel(
         serviceRepository.clientNotification
             .filterNotNull()
             .onEach { notification ->
+                val firmwareUpdateStatus = firmwareUpdateStatusRepository.status.value
+                if (notification.isOtaStatusNotification() && firmwareUpdateStatus.isOtaUpdateActive) {
+                    Logger.i { "Suppressing OTA status ClientNotification generic alert during firmware update" }
+                    if (!firmwareUpdateStatus.isAwaitingOtaStatus) {
+                        clearClientNotification(notification)
+                    }
+                    return@onEach
+                }
                 val isCompromised = notification.low_entropy_key != null || notification.duplicated_public_key != null
                 showAlert(
                     titleRes = Res.string.client_notification,

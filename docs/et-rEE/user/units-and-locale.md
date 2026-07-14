@@ -2,7 +2,7 @@
 title: Units, Measurement & Locale
 parent: User Guide
 nav_order: 16
-last_updated: 2026-05-12
+last_updated: 2026-07-08
 description: How the app formats temperature, distance, speed, and other measurements based on your device locale.
 ---
 
@@ -14,11 +14,11 @@ Meshtastic rakendus kuvab automaatselt temperatuure, vahemaid, kiirusi ja aegu �
 
 ## How It Works
 
-Meshtastic raadiod edastavad andmeid alati **meetrilistes ühikutes** (meetrid, °C, km/h, hPa jne). When the app receives this data, it uses the `MetricFormatter` utility to convert and display values in whatever unit system your device's locale specifies.
+Meshtastic radios always transmit data in **metric units** (meters, °C, m/s, hPa, etc.). When the app receives this data, it converts and displays values in whatever unit system your device's locale specifies.
 
 On Android, your measurement preferences are determined by your system **Language & Region** settings. On Desktop (JVM), the app uses the JVM's default `Locale`.
 
-> 💡 **Tip:** You never need to toggle units inside the app. Change your system measurement preferences and every screen in Meshtastic updates automatically — node details, telemetry charts, weather, altitude, and more.
+> 💡 **Tip:** You never need to toggle units inside the app. Muuda oma süsteemi mõõtmiste eelistusi ja kõik Meshtasticu ekraanid värskendatakse automaatselt – sõlmede üksikasjad, telemeetriadiagrammid, ilm, kõrgus ja palju muud.
 
 ---
 
@@ -52,7 +52,7 @@ The app uses natural scaling — short distances stay in meters or feet, while l
 
 - **Node list** — distance and bearing to each node
 - **Node detail** — altitude, distance from your position
-- **Map** — waypoint distances, traceroute hop distances
+- **Kaart** — teekonnapunktide vahemaad, traceroute'i hüppevahemaad
 - **Compass** — distance to selected node
 
 ## Kiirus
@@ -88,13 +88,13 @@ Rainfall measurements (1-hour and 24-hour totals) are transmitted as **mm** and 
 
 Some units are international standards and are displayed the same way regardless of your locale:
 
-| Measurement                      | Unit                           | Why                                   |
-| -------------------------------- | ------------------------------ | ------------------------------------- |
-| Baromeetrii rõhk                 | hPa                            | International meteorological standard |
-| Heading / bearing                | ° (degrees) | Universal navigation convention       |
-| Radiatsioon                      | μR/hr                          | Standard dosimetry unit               |
-| GPS coordinates                  | decimal degrees                | Universal geographic standard         |
-| Humidity, battery, soil moisture | %                              | Universal                             |
+| Measurement                 | Unit                           | Why                                   |
+| --------------------------- | ------------------------------ | ------------------------------------- |
+| Baromeetrii rõhk            | hPa                            | International meteorological standard |
+| Heading / bearing           | ° (degrees) | Universal navigation convention       |
+| Radiatsioon                 | μR/hr                          | Standard dosimetry unit               |
+| GPS coordinates             | decimal degrees                | Universal geographic standard         |
+| Niiskus, aku, mulla niiskus | %                              | Universal                             |
 
 ## Date & Time
 
@@ -115,12 +115,13 @@ On Android, your measurement system (metric vs imperial) is tied to your region 
 2. Change your **Region** or **Measurement units** preference
 3. Tagasi Meshtastic juurde — väärtused värskendatakse kohe
 
-> 💡 **Tip:** The app uses `MetricFormatter` from `core:common`. All measurement formatting is handled by a shared KMP utility that respects your platform's locale. Developers adding new measurement displays should use `MetricFormatter` rather than hard-coding unit conversions.
+> 💡 **Tip:** All measurement formatting is handled centrally and respects your platform's locale, so units stay consistent everywhere in the app.
 
 ## Related Topics
 
 - [Node Metrics](node-metrics) — where temperature, distance, and sensor values are displayed
 - [Telemeetia & Sensorid](telemetry-and-sensors) — andurid, mis neid mõõtmisi teevad
+- [Measurement & Formatting](../developer/measurement) — developer reference for the formatting utilities
 - [Settings — Radio & User](settings-radio-user) — region setting that drives unit selection
 
 ---

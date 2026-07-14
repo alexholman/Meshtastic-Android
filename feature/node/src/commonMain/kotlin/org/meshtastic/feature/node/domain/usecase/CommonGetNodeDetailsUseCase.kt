@@ -31,6 +31,7 @@ import org.meshtastic.core.model.DeviceLink
 import org.meshtastic.core.model.MeshLog
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.util.DistanceUnit
 import org.meshtastic.core.model.util.hasValidEnvironmentMetrics
 import org.meshtastic.core.model.util.isDirectSignal
 import org.meshtastic.core.repository.DeviceHardwareRepository
@@ -48,7 +49,7 @@ import org.meshtastic.feature.node.detail.NodeRequestActions
 import org.meshtastic.feature.node.metrics.EnvironmentMetricsState
 import org.meshtastic.feature.node.model.LogsType
 import org.meshtastic.feature.node.model.MetricsState
-import org.meshtastic.proto.Config
+import org.meshtastic.proto.Config.DisplayConfig.DisplayUnits
 import org.meshtastic.proto.DeviceProfile
 import org.meshtastic.proto.FirmwareEdition
 import org.meshtastic.proto.MeshPacket
@@ -175,15 +176,19 @@ constructor(
             val logs = args[LOGS_INDEX] as LogsGroup
             val identity = args[IDENTITY_INDEX] as IdentityGroup
             val metadata = args[METADATA_INDEX] as MetadataGroup
+
+            @Suppress("UNCHECKED_CAST")
             val requests = args[REQUESTS_INDEX] as Pair<List<MeshLog>, List<MeshLog>>
-            val (hw, deviceLinks) = args[HARDWARE_INDEX] as Pair<DeviceHardware?, List<DeviceLink>>
+
+            @Suppress("UNCHECKED_CAST")
+            val hardwareAndLinks = args[HARDWARE_INDEX] as Pair<DeviceHardware?, List<DeviceLink>>
+            val (hw, deviceLinks) = hardwareAndLinks
 
             val (trReqs, niReqs) = requests
             val isLocal = node.num == identity.ourNode?.num
             val pioEnv = if (isLocal) identity.myInfo?.pioEnv else null
 
-            val moduleConfig = identity.profile.module_config
-            val displayUnits = identity.profile.config?.display?.units ?: Config.DisplayConfig.DisplayUnits.METRIC
+            val displayUnits = DistanceUnit.getFromLocale()
 
             val metricsState =
                 MetricsState(
@@ -193,9 +198,7 @@ constructor(
                     deviceLinks = deviceLinks,
                     reportedTarget = pioEnv,
                     isManaged = identity.profile.config?.security?.is_managed ?: false,
-                    isFahrenheit =
-                    moduleConfig?.telemetry?.environment_display_fahrenheit == true ||
-                        (displayUnits == Config.DisplayConfig.DisplayUnits.IMPERIAL),
+                    isFahrenheit = displayUnits == DisplayUnits.IMPERIAL,
                     displayUnits = displayUnits,
                     deviceMetrics = logs.telemetry.filter { it.device_metrics != null },
                     localStats = logs.telemetry.filter { it.local_stats != null },

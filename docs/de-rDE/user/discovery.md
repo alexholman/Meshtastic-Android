@@ -2,7 +2,7 @@
 title: Entdecken
 parent: User Guide
 nav_order: 12
-last_updated: 2026-06-11
+last_updated: 2026-07-08
 description: Explore your mesh network — the Local Mesh Discovery scanner, traceroute paths, neighbor maps, and node discovery tools.
 aliases:
   - mesh-discovery
@@ -14,18 +14,18 @@ aliases:
 
 # Entdecken
 
-Discovery tools help you understand **how** your mesh network is connected — which nodes can hear each other, what paths messages take, and where bottlenecks or weak links exist.
+Discovery-Tools helfen Ihnen zu verstehen, **wie** Ihr Mesh-Netzwerk vernetzt ist – welche Knoten einander erreichen können, welche Wege Nachrichten nehmen und wo Engpässe oder Schwachstellen bestehen.
 
 The app offers two complementary approaches:
 
-- **Local Mesh Discovery (Scanner)** — an automated mode that cycles your connected radio through different LoRa presets, listens on each, and ranks which preset performs best at your location.
+- **Lokale Netzwerk Erkennung (Scanner)** – ein automatischer Modus, der das angeschlossene Funkmodul nacheinander auf verschiedene LoRa Voreinstellungen umschaltet, auf jeder dieser Einstellungen lauscht und bewertet, welche davon an Ihrem Standort die beste Leistung erbringt.
 - **Manual exploration** — traceroute, Neighbor Info, and the node list, which you can use at any time to investigate specific paths and topology.
 
 ---
 
 ## Local Mesh Discovery (Scanner)
 
-Local Mesh Discovery is a dedicated scanning mode that helps you find the best LoRa modem preset for your location and see which nodes are active on each preset. It cycles your connected radio through one or more presets you choose, listens (or "dwells") on each one for a set time to collect packets, then analyzes and ranks the results.
+Local Mesh Discovery is a dedicated scanning mode that helps you find the best LoRa modem preset for your location and see which nodes are active on each preset. Es schaltet das angeschlossene Funkgerät nacheinander auf eine oder mehrere von Ihnen gewählte Voreinstellungen, verweilt jeweils für eine festgelegte Zeit auf dem Kanal, um Datenpakete zu erfassen, und analysiert sowie bewertet anschließend die Ergebnisse.
 
 Open it from **Settings → Local Mesh Discovery**.
 
@@ -44,7 +44,6 @@ Before starting, configure these controls:
 The **Start** button stays disabled — with an explanation of why — until the scan can run. Common reasons it's disabled:
 
 - The device is **not connected**.
-- The current channel is using the **default channel key** (use a unique key first — see [Messages & Channels](messages-and-channels)).
 - **No presets** have been selected to scan.
 - The selected preset uses **2.4 GHz**, which your hardware doesn't support.
 
@@ -52,7 +51,7 @@ The **Start** button stays disabled — with an explanation of why — until the
 
 While a scan runs, Discovery shows its current stage:
 
-| Stage                                                 | What's happening                                                                                       |
+| Phase                                                 | What's happening                                                                                       |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | **Preparing**                                         | Saving your current configuration and getting ready to scan.                           |
 | **Shifting to \<preset\>** | Switching the radio to the next preset to test.                                        |
@@ -114,12 +113,12 @@ You → Node A (SNR: 8.5, RSSI: -95) → Node B (SNR: 5.2, RSSI: -108) → Targe
 
 Each hop represents a relay node that forwarded the message. The SNR and RSSI values at each hop tell you about the link quality on that specific segment.
 
-| What to look for                                                           | What it means                                                               |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| All hops show Good SNR (> 5 dB)                         | Healthy path — messages flow reliably                                       |
-| One hop shows Bad SNR (< 0 dB) | Weak link — this relay segment is fragile                                   |
-| Many hops (4+)                                          | Long path — consider repositioning a node to shorten it                     |
-| Different path on retry                                                    | Mesh is adapting — multiple routes exist (this is good!) |
+| What to look for                                                                  | What it means                                                               |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| All hops show Good SNR (≥ −7 dB, green)                        | Healthy path — messages flow reliably                                       |
+| One hop shows Bad SNR (< −15 dB, red) | Weak link — this relay segment is fragile                                   |
+| Many hops (4+)                                                 | Long path — consider repositioning a node to shorten it                     |
+| Different path on retry                                                           | Mesh is adapting — multiple routes exist (this is good!) |
 
 > 💡 **Tip:** Run traceroute several times over a few minutes. If the path changes, your mesh has redundant routes — a sign of a well-connected network.
 

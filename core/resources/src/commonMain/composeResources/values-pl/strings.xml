@@ -57,6 +57,7 @@
     <string name="audio">Dźwięk</string>
     <string name="available_pins">Dostępne piny</string>
     <string name="back">Wstecz</string>
+    <string name="backup_keys">Klucze zapasowe</string>
     <string name="bad">słaby</string>
     <string name="bandwidth">Pasmo</string>
     <string name="battery">Bateria</string>
@@ -205,6 +206,7 @@
     <string name="delivery_confirmed">Dostarczono</string>
     <string name="desc_node_filter_clear">Wyczyść filtr</string>
     <string name="description">Opis</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Szczegóły</string>
     <string name="detection_sensor">Czujnik detekcji</string>
@@ -219,6 +221,7 @@
     <string name="device_sleeping">Urządzenie uśpione</string>
     <string name="dew_point">Punkt rosy</string>
     <string name="direct_message">Bezpośrednia wiadomość</string>
+    <string name="direct_messages">Bezpośrednie Wiadomości</string>
     <string name="discard_changes">Odrzuć</string>
     <string name="disconnect">Rozłącz</string>
     <string name="disconnected">Rozłączono</string>
@@ -267,10 +270,8 @@
     <string name="ethernet_ip">Ethernet IP:</string>
     <string name="exchange_position">Poproś o pozycję</string>
     <string name="expires">Wygasa</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Eksport konfiguracji</string>
     <string name="export_data_csv">Eksportuj wszystkie pakiety</string>
-    <string name="export_keys">Eksportuj klucze</string>
     <string name="external_notification">Zewnętrzne Powiadomienie</string>
     <string name="external_notification_config">Konfiguracja Zewnętrznego Powiadomienia</string>
     <string name="external_notification_enabled">Powiadomienia zewnętrzne włączone</string>
@@ -325,6 +326,7 @@
     <string name="fixed_pin">Stały PIN</string>
     <string name="fixed_position">Położenie stałe</string>
     <string name="flip_screen">Odwróć ekran</string>
+    <!-- FORMAT -->
     <string name="frequency_slot">Slot częstotliwości</string>
     <string name="friendly_name">Przyjazna nazwa</string>
     <string name="gas_resistance">Rezystancja gazu</string>
@@ -374,6 +376,7 @@
     <string name="ip_port">Port:</string>
     <string name="ipv4_mode">Tryb IPv4</string>
     <string name="json_output_enabled">Włącz wyjście JSON</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="label_long_fast">Daleki zasięg — Szybko</string>
     <string name="label_long_moderate">Daleki zasięg — Średnio</string>
@@ -455,6 +458,9 @@
     <string name="match_all">Dopasuj Wszystkie | Dowolne</string>
     <string name="match_any">Dopasuj Dowolne | Wszystkie</string>
     <string name="max">Maks.</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Zamknij</string>
+    <string name="mesh_beacon_preset_none">Brak</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_alerts_notifications">Powiadomienia alertowe</string>
@@ -470,7 +476,6 @@
     <string name="message">Wiadomość</string>
     <string name="message_delivery_status">Status doręczenia wiadomości</string>
     <string name="message_input_label">Wiadomość</string>
-    <string name="message_status_enroute">Oczekiwanie na potwierdzenie</string>
     <string name="message_status_queued">Zakolejkowane do wysłania</string>
     <string name="message_status_unknown">Nieznany</string>
     <string name="messages">Wiadomości</string>
@@ -738,6 +743,8 @@
     <string name="shutdown_warning">⚠️ Spowoduje to WYŁĄCZENIE węzła. Do ponownego włączenia węzła, konieczna będzie fizyczna interakcja.</string>
     <string name="signal">Sygnał:</string>
     <string name="signal_quality">Jakość sygnału</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Wyświetlacz</string>
     <string name="skip">Pomiń</string>
     <string name="smart_position">Inteligentne Pozycjonowanie</string>
     <string name="snr">SNR:</string>
@@ -785,6 +792,7 @@
     <string name="traceroute_showing_nodes">Pokazywanie %1$d/%2$d węzłów</string>
     <!-- TRAFFIC -->
     <string name="traffic_management_enabled">Moduł Włączony</string>
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Nadaj przez LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_ble">BLE</string>
@@ -827,6 +835,7 @@
     <string name="voltage">Napięcie</string>
     <string name="wake_on_tap_or_motion">Wybudź przy dotknięciu lub ruchu</string>
     <string name="warning">Uwaga</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Usuń punkt nawigacji?</string>
     <string name="waypoint_edit">Edytuj punkt nawigacji</string>
     <string name="waypoint_new">Nowy punkt nawigacyjny</string>

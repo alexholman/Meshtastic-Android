@@ -22,15 +22,19 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,8 +46,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
+import org.meshtastic.core.common.util.normalizeAddress
 import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.di.CoroutineDispatchers
 import kotlin.concurrent.Volatile
@@ -62,10 +68,23 @@ open class DatabaseManager(
     private val managerScope = CoroutineScope(SupervisorJob() + dispatchers.default)
     private val mutex = Mutex()
 
+    // Per-source write barrier for merges. `withDb` deliberately does NOT take [mutex] (hot path), so a merge under
+    // [mutex] must still drain any in-flight writer that captured the source DB before folding it away — otherwise a
+    // late-committing write is lost when the source is retired. This dedicated lock (never held across a drain await,
+    // so it can't deadlock the merge) tracks live `withDb` blocks per captured DB instance. It also guards the merge's
+    // active-DB swap so a writer either registers against `source` before the swap and is drained, or captures `dest`
+    // after it and is safe — it can never slip through the gap between the two.
+    private val writerTrackerMutex = Mutex()
+    private val activeWriters = mutableMapOf<MeshtasticDatabase, Int>()
+    private val drainWaiters = mutableMapOf<MeshtasticDatabase, MutableList<CompletableDeferred<Unit>>>()
+
     private val cacheLimitKey = intPreferencesKey(DatabaseConstants.CACHE_LIMIT_KEY)
     private val legacyCleanedKey = booleanPreferencesKey(DatabaseConstants.LEGACY_DB_CLEANED_KEY)
 
     private fun lastUsedKey(dbName: String) = longPreferencesKey("db_last_used:$dbName")
+
+    private fun addrDbKey(address: String?) =
+        stringPreferencesKey("${DatabaseConstants.ADDR_DB_FOR_PREFIX}${normalizeAddress(address)}")
 
     private var backfillJob: Job? = null
 
@@ -83,9 +102,7 @@ open class DatabaseManager(
         managerScope.launch {
             datastore.edit { it[cacheLimitKey] = clamped }
             // Enforce asynchronously with current active DB protected
-            val active =
-                _currentDb.value?.let { buildDbName(_currentAddress.value) } ?: DatabaseConstants.DEFAULT_DB_NAME
-            enforceCacheLimit(activeDbName = active)
+            enforceCacheLimit(activeDbName = currentDbName)
         }
     }
 
@@ -105,6 +122,13 @@ open class DatabaseManager(
     private val _currentAddress = MutableStateFlow<String?>(null)
     val currentAddress: StateFlow<String?> = _currentAddress
 
+    /**
+     * Name of the currently active database. Tracked explicitly rather than recomputed from the address, because
+     * cross-transport aliasing ([associateDevice]) decouples the two: a secondary transport's address maps to the DB
+     * claimed by the first transport, which `buildDbName(address)` would never produce. Written under [mutex].
+     */
+    @Volatile private var currentDbName: String = DatabaseConstants.DEFAULT_DB_NAME
+
     /** Initialize the active database for [address]. */
     suspend fun init(address: String?) {
         switchActiveDatabase(address)
@@ -118,12 +142,24 @@ open class DatabaseManager(
     private fun getOrOpenDatabase(dbName: String): MeshtasticDatabase =
         dbCache.getOrPut(dbName) { getDatabaseBuilder(dbName).build() }
 
+    /**
+     * Resolves the DB name to use for [address], honoring a cross-transport alias when one exists. A secondary
+     * transport (e.g. TCP) that has been unified with a node points at the DB the first transport (e.g. BLE) claimed;
+     * without an alias this falls back to the address-hashed name — today's default — for a first-time or primary
+     * connection. See [associateDevice].
+     */
+    private suspend fun resolveDbName(address: String?): String {
+        val fallback = buildDbName(address)
+        if (fallback == DatabaseConstants.DEFAULT_DB_NAME) return fallback
+        return datastore.data.first()[addrDbKey(address)] ?: fallback
+    }
+
     /** Switch active database to the one associated with [address]. Serialized via mutex. */
     override suspend fun switchActiveDatabase(address: String?) = mutex.withLock {
-        val dbName = buildDbName(address)
+        val dbName = resolveDbName(address)
 
         // Remember the previously active DB name (any) so we can record its last-used time as well.
-        val previousDbName = _currentDb.value?.let { buildDbName(_currentAddress.value) }
+        val previousDbName = if (_currentDb.value != null) currentDbName else null
 
         // Fast path: no-op if already on this address
         if (_currentAddress.value == address && _currentDb.value != null) {
@@ -140,6 +176,7 @@ open class DatabaseManager(
         // collectors, causing "Connection pool is closed" crashes.
         _currentDb.value = db
         _currentAddress.value = address
+        currentDbName = dbName
         markLastUsed(dbName)
         // Also mark the previous DB as used "just now" so LRU has an accurate, recent timestamp
         previousDbName?.let { markLastUsed(it) }
@@ -167,6 +204,99 @@ open class DatabaseManager(
         Logger.i { "Switched active DB to ${anonymizeDbName(dbName)} for address ${anonymizeAddress(address)}" }
     }
 
+    @Suppress("TooGenericExceptionCaught")
+    override suspend fun associateDevice(nodeNum: Int, deviceId: String?) {
+        mutex.withLock {
+            val sourceName = currentDbName
+            // Never claim or merge into the sentinel "no device" DB.
+            if (sourceName == DatabaseConstants.DEFAULT_DB_NAME) return@withLock
+
+            // The device-id claim is the durable one (node numbers renumber under firmware 2.8); the
+            // node-num claim stays as the fallback for hardware without a device id, for lockdown
+            // sessions (device_id zeroed), and for claims written by older app versions. Writes always
+            // refresh both keys so either lookup path resolves on the next connection.
+            val deviceKey = validDeviceIdOrNull(deviceId)?.let(::deviceDbPrefKey)
+            val nodeKey = nodeDbPrefKey(nodeNum)
+            val prefs = datastore.data.first()
+            val claimed = resolveDbClaim(prefs, deviceKey, nodeKey)
+            suspend fun writeClaims(dbName: String) = datastore.edit {
+                deviceKey?.let { key -> it[key] = dbName }
+                it[nodeKey] = dbName
+            }
+
+            when {
+                claimed == null -> {
+                    // First transport to learn this device: its current DB becomes the device's canonical DB.
+                    // No address alias is needed — a primary connection already resolves to this DB via buildDbName.
+                    writeClaims(sourceName)
+                    Logger.i { "Claimed ${anonymizeDbName(sourceName)} as canonical DB for node $nodeNum" }
+                }
+
+                claimed == sourceName -> {
+                    // Already unified — just backfill/refresh any claim key that is missing or stale
+                    // (e.g. the first connect after this device renumbered, or after an app update
+                    // introduced device-id claims).
+                    if ((deviceKey != null && prefs[deviceKey] != sourceName) || prefs[nodeKey] != sourceName) {
+                        writeClaims(sourceName)
+                    }
+                }
+
+                else -> {
+                    // Secondary transport reached an already-known node: fold this DB into the canonical one,
+                    // switch the active DB to it, alias this address to it, and retire the now-merged source.
+                    val source = _currentDb.value ?: return@withLock
+                    val dest = withContext(dispatchers.io) { getOrOpenDatabase(claimed) }
+
+                    // Redirect live writers to the canonical DB BEFORE merging (a connect triggers a full NodeDB
+                    // re-dump). The swap is published under the writer lock so a concurrent withDb write registers
+                    // against `source` before it — and is drained below — or captures `dest` after it and is safe.
+                    // New writers now capture `dest`; drainWriters then waits out any still writing to `source` so
+                    // the merge can't snapshot `source` mid-write and lose it when `source` is later retired.
+                    publishActiveDb(dest, claimed)
+                    try {
+                        withContext(dispatchers.io) {
+                            drainWriters(source, sourceName)
+                            DatabaseMerger.merge(source, dest, sourceName)
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // merge() is atomic, so on failure `dest` is unchanged. Roll the active DB back to
+                        // `source` so the address still resolves consistently and the merge retries next connect.
+                        publishActiveDb(source, sourceName)
+                        Logger.w(e) {
+                            "Merge into ${anonymizeDbName(claimed)} failed; kept ${anonymizeDbName(sourceName)} active"
+                        }
+                        return@withLock
+                    }
+
+                    markLastUsed(claimed)
+                    // Refresh both claim keys (migrates a legacy nodeNum-only claim forward to the
+                    // device-id key) and alias this transport's address to the canonical DB.
+                    writeClaims(claimed)
+                    datastore.edit { it[addrDbKey(_currentAddress.value)] = claimed }
+                    Logger.i {
+                        "Unified ${anonymizeDbName(sourceName)} into ${anonymizeDbName(claimed)} for node $nodeNum"
+                    }
+
+                    // Retire the merged source off the critical path; its data now lives in the canonical DB.
+                    managerScope.launch(dispatchers.io) { retireDatabase(sourceName) }
+                }
+            }
+        }
+    }
+
+    /** Closes, deletes, and forgets a database whose contents have been merged into another. */
+    private suspend fun retireDatabase(dbName: String) = mutex.withLock {
+        runCatching {
+            closeCachedDatabase(dbName)
+            deleteDatabase(dbName)
+            datastore.edit { it.remove(lastUsedKey(dbName)) }
+        }
+            .onSuccess { Logger.i { "Retired merged DB ${anonymizeDbName(dbName)}" } }
+            .onFailure { Logger.w(it) { "Failed to retire merged database ${anonymizeDbName(dbName)}" } }
+    }
+
     /**
      * Closes and removes a cached database by name. Safe to call even if the database was already closed or not in the
      * cache. Does NOT delete the underlying file — the database can be re-opened on next access.
@@ -182,16 +312,138 @@ open class DatabaseManager(
         Logger.d { "Closed inactive database ${anonymizeDbName(dbName)} to free connections" }
     }
 
-    private val limitedIo = dispatchers.io.limitedParallelism(4)
+    /**
+     * Reopens the active database under [mutex], but only if it hasn't switched since the caller snapshotted it.
+     *
+     * The replaced Room instance is intentionally left open for the rest of the process. [currentDb] is a derived
+     * StateFlow, so there is no deterministic handoff point where every app-wide collector has stopped using the old
+     * instance.
+     *
+     * Returns the reopened DB, or null if another coroutine already switched to a different device.
+     */
+    private suspend fun reopenActiveDatabaseIfStillCurrent(
+        expectedDb: MeshtasticDatabase,
+        expectedDbName: String,
+    ): MeshtasticDatabase? = mutex.withLock {
+        if (_currentDb.value !== expectedDb || currentDbName != expectedDbName) return null
+
+        val cached = dbCache[expectedDbName]
+        if (cached !== expectedDb) {
+            Logger.w { "withDb: active DB cache entry changed before reopen; skipping active DB reopen" }
+            return null
+        }
+
+        // Build a fresh instance directly (not through getOrPut) before touching the cache,
+        // so a failed or cancelled build leaves the existing cache entry and _currentDb consistent.
+        val reopened = withContext(dispatchers.io) { getDatabaseBuilder(expectedDbName).build() }
+        dbCache[expectedDbName] = reopened
+        _currentDb.value = reopened
+
+        // Intentionally do not close expectedDb here. The public currentDb Flow is derived from
+        // _currentDb through stateIn, so downstream flatMapLatest collectors may still be using the
+        // replaced Room instance after this function emits the reopened DB. Closing the old pool here
+        // can surface "Connection pool is closed" to app-wide DB observers that do not have closed-pool
+        // recovery. This mirrors switchActiveDatabase's no-sync-close discipline; the leaked pool is
+        // bounded by rare active-DB reopen recovery events and is reclaimed on process death. Revisit
+        // once switching DB observers have explicit closed-pool resubscribe/retry handling.
+
+        reopened
+    }
+
+    // Short-term runtime containment: route withDb entry through a single-lane dispatcher to narrow the Room/SQLite
+    // connection-pool churn window seen during device/firmware update flows. Room suspend DAOs may continue on Room's
+    // own executor after suspension, so this is not a strict global DB-I/O serialization guarantee. Preserve bounded
+    // one-shot DB-critical blocks through cancellation, then re-check cancellation so stale callers do not continue
+    // after the DB releases. Long-lived Flow/Paging reads must stay out of withDb; revisit after direct currentDb.value
+    // callers are audited and safe DB concurrency can be restored.
+    private val limitedIo = dispatchers.io.limitedParallelism(1)
 
     /** Execute [block] with the current DB instance. Retries once if the pool closes during a DB switch. */
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun <T> withDb(block: suspend (MeshtasticDatabase) -> T): T? = withContext(limitedIo) {
-        val db = _currentDb.value ?: return@withContext null
-        val active = buildDbName(_currentAddress.value)
+    override suspend fun <T> withDb(block: suspend (MeshtasticDatabase) -> T): T? {
+        val queuedAt = nowMillis
+        return withContext(limitedIo) {
+            val queuedMillis = nowMillis - queuedAt
+            if (queuedMillis >= WITH_DB_SLOW_OPERATION_MS) {
+                Logger.w { "withDb waited ${queuedMillis}ms for the temporary DB containment lane" }
+            }
+
+            val startedAt = nowMillis
+            try {
+                withCurrentDb(block)
+            } finally {
+                val elapsedMillis = nowMillis - startedAt
+                if (elapsedMillis >= WITH_DB_SLOW_OPERATION_MS) {
+                    Logger.w {
+                        "withDb callback took ${elapsedMillis}ms on the temporary DB containment lane; persistent " +
+                            "slow logs indicate DB access path should be revisited"
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Atomically snapshots the active DB and registers a writer against it. Before the first [switchActiveDatabase]
+     * `_currentDb` is still null, so fall back to the public [currentDb] view — the eagerly-opened default DB — giving
+     * withDb the exact DB-resolution semantics of a direct `currentDb.value` caller. Desktop never calls [init] until a
+     * device is selected, so without the fallback pre-connection writes (quick-chat actions, firmware/hardware cache
+     * refreshes) would silently no-op there instead of landing in the default DB the pre-connection flows read from.
+     */
+    private suspend fun beginWrite(): MeshtasticDatabase = writerTrackerMutex.withLock {
+        val db = _currentDb.value ?: currentDb.value
+        activeWriters[db] = (activeWriters[db] ?: 0) + 1
+        db
+    }
+
+    /**
+     * Registers a writer against a specific [db] — used by the withDb retry paths, whose target is a recovered/new
+     * instance rather than the snapshotted active DB, so their writes stay visible to a concurrent drain too.
+     */
+    private suspend fun registerWriter(db: MeshtasticDatabase) =
+        writerTrackerMutex.withLock { activeWriters[db] = (activeWriters[db] ?: 0) + 1 }
+
+    /** Deregisters a writer and releases any merge waiting for [db] to quiesce. Cancellation-safe (see call site). */
+    private suspend fun endWrite(db: MeshtasticDatabase) = writerTrackerMutex.withLock {
+        val remaining = (activeWriters[db] ?: 1) - 1
+        if (remaining <= 0) {
+            activeWriters.remove(db)
+            drainWaiters.remove(db)?.forEach { it.complete(Unit) }
+        } else {
+            activeWriters[db] = remaining
+        }
+    }
+
+    /** Publishes [db]/[name] as active under the writer lock so concurrent [beginWrite]s order against the swap. */
+    private suspend fun publishActiveDb(db: MeshtasticDatabase, name: String) = writerTrackerMutex.withLock {
+        _currentDb.value = db
+        currentDbName = name
+    }
+
+    /**
+     * Suspends until every writer that captured [db] before this call has finished, so a merge never snapshots [db]
+     * while a write is still in flight (and then loses it when [db] is retired). Bounded by [WRITER_DRAIN_TIMEOUT_MS]
+     * so a wedged writer can't pin the merge — and [mutex] — forever; falling through on timeout is no worse than the
+     * old barrier-less behavior for that rare case.
+     */
+    private suspend fun drainWriters(db: MeshtasticDatabase, dbName: String) {
+        val waiter =
+            writerTrackerMutex.withLock {
+                if ((activeWriters[db] ?: 0) == 0) return
+                CompletableDeferred<Unit>().also { drainWaiters.getOrPut(db) { mutableListOf() }.add(it) }
+            }
+        if (withTimeoutOrNull(WRITER_DRAIN_TIMEOUT_MS) { waiter.await() } == null) {
+            Logger.w { "Timed out draining writers on ${anonymizeDbName(dbName)} before merge" }
+        }
+    }
+
+    @Suppress("ReturnCount", "ThrowsCount", "TooGenericExceptionCaught", "CyclomaticComplexMethod")
+    private suspend fun <T> withCurrentDb(block: suspend (MeshtasticDatabase) -> T): T? {
+        val db = beginWrite()
+        val active = currentDbName
         markLastUsed(active)
         try {
-            block(db)
+            return runCancellableDbBlock(db, block)
         } catch (e: CancellationException) {
             throw e // Preserve structured concurrency cancellation propagation.
         } catch (e: Exception) {
@@ -200,27 +452,100 @@ open class DatabaseManager(
             val retryDb = _currentDb.value
             if (retryDb != null && retryDb !== db && isDbClosedException(e)) {
                 Logger.w { "withDb: database closed during switch (${e.message}), retrying with current DB" }
-                try {
-                    block(retryDb)
-                } catch (retryEx: Exception) {
-                    retryEx.addSuppressed(e)
-                    throw retryEx
-                }
-            } else {
-                throw e
+                return retryRegisteredDbBlock(retryDb, e, block)
             }
+
+            // Same active DB but Room's connection pool is wedged — reopen onto a fresh active instance once.
+            if (retryDb === db && isDbPoolAcquireTimeoutException(e)) {
+                val reopened = reopenActiveDatabaseIfStillCurrent(db, active)
+                val recoveredDb = reopened ?: _currentDb.value?.takeIf { it !== db } ?: throw e
+                Logger.w {
+                    if (reopened != null) {
+                        "withDb: reopened active DB after transient Room connection-pool timeout"
+                    } else {
+                        "withDb: active DB switched during timeout recovery; retrying with current DB"
+                    }
+                }
+                return retryRegisteredDbBlock(recoveredDb, e, block)
+            }
+
+            throw e
+        } finally {
+            // NonCancellable so a cancelled withDb still deregisters — a leaked +1 would make every future
+            // drain on this DB instance time out.
+            withContext(NonCancellable) { endWrite(db) }
         }
     }
 
-    private fun isDbClosedException(e: Exception): Boolean = generateSequence<Throwable>(e) { it.cause }
-        .any { throwable ->
-            val msg = throwable.message?.lowercase() ?: return@any false
-            "closed" in msg && DB_TERMS.any { it in msg }
+    /**
+     * Retries [block] against [db] — the recovered/new instance a withDb retry targets instead of the DB it originally
+     * registered against. Registers a writer on [db] for the duration so the retry write stays visible to a concurrent
+     * merge draining [db], with the same NonCancellable deregistration guarantee as [withCurrentDb]'s outer
+     * registration (which remains held on the original DB until that finally runs — the overlap is harmless, counts
+     * balance per instance). Any retry failure carries the original failure [cause] as a suppressed exception.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun <T> retryRegisteredDbBlock(
+        db: MeshtasticDatabase,
+        cause: Exception,
+        block: suspend (MeshtasticDatabase) -> T,
+    ): T {
+        registerWriter(db)
+        try {
+            return runCancellableDbBlock(db, block)
+        } catch (retryCancel: CancellationException) {
+            throw retryCancel
+        } catch (retryEx: Exception) {
+            retryEx.addSuppressed(cause)
+            throw retryEx
+        } finally {
+            withContext(NonCancellable) { endWrite(db) }
         }
+    }
 
-    private companion object {
+    private suspend fun <T> runCancellableDbBlock(db: MeshtasticDatabase, block: suspend (MeshtasticDatabase) -> T): T {
+        // Keep withDb callbacks bounded and one-shot: NonCancellable can hold the containment lane until this returns.
+        currentCoroutineContext().ensureActive()
+        val result = withContext(NonCancellable) { block(db) }
+        currentCoroutineContext().ensureActive()
+        return result
+    }
+
+    private fun isDbClosedException(e: Exception): Boolean = isDbPoolAcquireTimeoutException(e) ||
+        generateSequence<Throwable>(e) { it.cause }
+            .any { throwable ->
+                val msg = throwable.message?.lowercase() ?: return@any false
+                val hasDbContext = DB_TERMS.any { it in msg }
+                ("closed" in msg && hasDbContext) || "database is locked" in msg || "sqlite_busy" in msg
+            }
+
+    internal companion object {
         private const val BACKFILL_COLD_START_DELAY_MS = 2_000L
+        private const val WITH_DB_SLOW_OPERATION_MS = 1_000L
+
+        /**
+         * Upper bound on how long a merge waits for in-flight writers on the source DB to drain (see [drainWriters]).
+         */
+        private const val WRITER_DRAIN_TIMEOUT_MS = 5_000L
         val DB_TERMS = listOf("pool", "database", "connection", "sqlite")
+
+        private const val ROOM_POOL_ACQUIRE_TIMEOUT_PHRASE = "timed out attempting to acquire"
+        private const val ROOM_READER_CONNECTION_PHRASE = "reader connection"
+        private const val ROOM_WRITER_CONNECTION_PHRASE = "writer connection"
+
+        /**
+         * Room KMP currently exposes pool-acquire timeouts as exception message text instead of a stable common typed
+         * signal. Keep this fallback narrow so BLE/GATT/transport connection errors do not trigger DB reopen recovery.
+         */
+        private fun isRoomPoolAcquireTimeoutMessage(message: String): Boolean =
+            ROOM_POOL_ACQUIRE_TIMEOUT_PHRASE in message &&
+                (ROOM_READER_CONNECTION_PHRASE in message || ROOM_WRITER_CONNECTION_PHRASE in message)
+
+        fun isDbPoolAcquireTimeoutException(e: Exception): Boolean = generateSequence<Throwable>(e) { it.cause }
+            .any { throwable ->
+                val msg = throwable.message?.lowercase() ?: return@any false
+                isRoomPoolAcquireTimeoutMessage(msg)
+            }
     }
 
     /**

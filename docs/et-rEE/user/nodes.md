@@ -2,12 +2,13 @@
 title: Sõlmed
 parent: User Guide
 nav_order: 4
-last_updated: 2026-06-25
+last_updated: 2026-07-08
 description: Browse, filter, and sort mesh nodes — view details, signal quality, roles, and quick actions.
 aliases:
   - node-list
   - mesh-nodes
   - peers
+  - hop-histogram
 ---
 
 # Sõlmed
@@ -53,13 +54,13 @@ Sõlmedele saab määrata erinevaid rolle, mis mõjutavad nende kärgvõrgus kä
 | Andur                            | Optimized for telemetry reporting                                                                                                                                       |
 | TAK                              | Interoperates with TAK systems (sends/receives CoT)                                                                                                  |
 | Jälgitav TAK                     | TAK position reporting only                                                                                                                                             |
-| Lost & Found | Continuous position beacon for recovery                                                                                                                                 |
+| Lost & Found | Pidev asukoha majakas taastamiseks                                                                                                                                      |
 
 ### Choosing a Role
 
 Most users should keep the default **Client** role. Consider a different role when:
 
-- **Router** — You have a node in a fixed, elevated location with reliable power (rooftop, hilltop). Routers stay awake continuously to relay messages for others and are essential for extending mesh coverage. Don't use Router on battery-powered handheld devices.
+- **Router** — You have a node in a fixed, elevated location with reliable power (rooftop, hilltop). Routers stay awake continuously to relay messages for others and are essential for extending mesh coverage. Ära kasuta ruuter akutoitel töötavatel käsiseadetel.
 - **Ruuter hiline** – infrastruktuurisõlm, mis levitab pakette alati üks kord uuesti, aga alles pärast seda, kui kõik teised marsruutimisrežiimid on oma käigu teinud. Provides supplemental coverage for local clusters without competing with primary routers.
 - **Client Base** — Treats traffic from/to your favorited nodes with Router Late priority (ensuring those messages get extra relay coverage) while handling everything else as a normal Client.
 - **Client Mute** — You want to receive mesh traffic but not contribute to relaying. Useful for monitoring-only devices or to reduce congestion in dense areas.
@@ -73,11 +74,11 @@ Most users should keep the default **Client** role. Consider a different role wh
 
 Nodes display encryption status icons next to their name:
 
-| Icon            | Meaning                                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 🔒 Lukustatud   | Communication uses PKI (public key infrastructure) — end-to-end encrypted with verified identity |
-| 🔓 Lukust lahti | Communication uses shared channel PSK — encrypted but identity not individually verified                            |
-| ⚠️ Ebakõla      | Public key mismatch — the node's key has changed since last seen (investigate before trusting)   |
+| Icon            | Meaning                                                                                                                    |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 🔒 Lukustatud   | Communication uses PKI (public key infrastructure) — end-to-end encrypted with verified identity        |
+| 🔓 Lukust lahti | Suhtlus kasutab jagatud kanali PSK – krüpteeritud, kuid isikut pole individuaalselt kontrollitud                           |
+| ⚠️ Ebakõla      | Avaliku võtme mittevastavus — sõlme võti on viimasest nägemisest saadik muutunud (enne usaldamist uuri) |
 
 > 💡 **Vihje:** PKI krüpteering (püsivara 2,5+) pakub tugevamat turvalisust kui kanali PSK, kuna igal sõlmel on unikaalne võtmepaar. Kui näed võtme mittevastavuse hoiatust, võib sõlm olla lähtestatud või ohustatud.
 
@@ -88,7 +89,7 @@ From the node list, you can:
 - **Puuduta** sõlmel, et vaadata üksikasjade lehte
 - **Long-press** for quick actions:
   - Mark/remove favorite
-  - Mute/unmute notifications
+  - Teavituste vaigistamine/vaigistuse tühistamine
   - Send a direct message
   - Trace route
   - Ignore/unignore
@@ -118,10 +119,14 @@ Type in the search field to filter nodes by name or short name. Filter uueneb re
 | **Last heard** (default) | Most recently heard nodes first                                    |
 | **Alphabetical**                            | Sorted by node long name                                           |
 | **Distance**                                | Nearest nodes first (requires position sharing) |
-| **Hops away**                               | Fewest relay hops first                                            |
-| **Channel**                                 | Grouped by channel index                                           |
+| **Hüppe kaugusel**                          | Vähim vahendatud hüppeid esimesena                                 |
+| **Kanal**                                   | Rühmitatud kanali loendi alusel                                    |
 | **Läbi MQTT**                               | Rühmitatud MQTT ver raadiost kuuldud järgi                         |
 | **Favorites**                               | Favorited nodes first                                              |
+
+## Sõlme hüppe kohta
+
+Tap the hop-histogram icon in the node list's app bar to open a bar chart of how many nodes sit at each hop distance (0 = direct, 1 = one relay away, and so on). Filter the chart to a **last heard** window — All time, 1 hour, 8 hours, or 24 hours — to see how the mesh looks right now versus over a longer period. It's a quick way to gauge how busy and spread out your local mesh is.
 
 ## Node Detail
 
@@ -138,8 +143,8 @@ Inline status indicators show key metrics at a glance:
 | Indicator       | Screenshot                                                    |
 | --------------- | ------------------------------------------------------------- |
 | Signal quality  | ![Signal](../../assets/screenshots/nodes_signal_info.png)     |
-| Battery level   | ![Battery](../../assets/screenshots/nodes_battery_info.png)   |
-| Hop count       | ![Hops](../../assets/screenshots/nodes_hops_info.png)         |
+| Aku tase        | ![Aku](../../assets/screenshots/nodes_battery_info.png)       |
+| Hüppete loendur | ![Hüpet](../../assets/screenshots/nodes_hops_info.png)        |
 | Viimati kuuldud | ![Last heard](../../assets/screenshots/nodes_last_heard.png)  |
 | Kaugus          | ![Distance](../../assets/screenshots/nodes_distance_info.png) |
 
@@ -152,9 +157,9 @@ A full, browsable directory of every link is also available under **Settings →
 ## Related Topics
 
 - [Node Metrics](node-metrics) — detailed telemetry dashboards for each node
-- [Messages & Channels](messages-and-channels) — send a direct message to a node
+- [Sõnumid ja kanalid](messages-and-channels) — saada otsesõnum sõlmele
 - [Map & Waypoints](map-and-waypoints) — view node positions geographically
-- [Discovery](discovery) — traceroute and neighbor info for topology exploration
+- [Avasta](Discovery) - traceroute ja naabri-info kärgvõrgu topoloogia uurimiseks
 - [Signal Meter](signal-meter) — understand what the signal bars mean
 
 ---

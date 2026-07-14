@@ -120,6 +120,7 @@
     <string name="delivery_confirmed">Doručenie potvrdené</string>
     <string name="desc_node_filter_clear">vymazať filter uzlov</string>
     <string name="description">Popis</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Detaily</string>
     <string name="detection_sensor">Detekčný senzor</string>
@@ -153,7 +154,6 @@
     <string name="ethernet_enabled">Ethernet zapnutý</string>
     <string name="ethernet_ip">Eternet IP:</string>
     <string name="exchange_position">Vymeniť si pozície</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Exportovať konfiguráciu</string>
     <string name="external_notification">Externá notifikácia</string>
     <string name="factory_reset">Obnova do výrobných nastavení</string>
@@ -170,6 +170,7 @@
     <string name="fixed_pin">Pevný PIN</string>
     <string name="fixed_position">Fixná Pozícia</string>
     <string name="flip_screen">Otoč Obrazovku</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <string name="good">Dobrý</string>
     <!-- GPIO -->
@@ -200,6 +201,7 @@
     <string name="ip_address">IP adresa:</string>
     <string name="ip_port">Port:</string>
     <string name="ipv4_mode">IPv4 režim</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="label_long_fast">Ďaleký Dosah - Rýchlo</string>
     <string name="label_long_moderate">Ďaleký Dosah - Mierne</string>
@@ -256,6 +258,8 @@
     <string name="map_tile_download_estimate">Odhad sťahovania dlaždíc:</string>
     <string name="map_tile_source">Zdroj dlaždíc</string>
     <string name="max">Maximum</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Žiadny</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_alerts_notifications">Notifikácie upozornení</string>
@@ -268,7 +272,6 @@
     <string name="message">Správa</string>
     <string name="message_delivery_status">Stav doručenia správy</string>
     <string name="message_input_label">Správa</string>
-    <string name="message_status_enroute">Čaká sa na potvrdenie</string>
     <string name="message_status_queued">Vo fronte na odoslanie</string>
     <string name="messages">Správy</string>
     <string name="module_settings">Konfigurácia modulu</string>
@@ -438,6 +441,8 @@
     <string name="shutdown">Vypnúť</string>
     <string name="signal">Signál</string>
     <string name="signal_quality">Kvalita signálu</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Obrazovka</string>
     <string name="smart_position">Inteligentná poloha</string>
     <string name="snr">SNR</string>
     <string name="snr_definition">Pomer signálu od šumu (SNR), miera používaná v komunikácii na kvantifikáciu úrovne požadovaného signálu k úrovni hluku pozadia. V Meshtastic a iných bezdrôtových systémoch znamená vyšší SNR jasnejší signál, ktorý môže zvýšiť spoľahlivosť a kvalitu prenosu údajov.</string>
@@ -468,6 +473,7 @@
     </plurals>
     <string name="traceroute_log">Trasovanie</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Vysielať cez sieť LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
@@ -490,6 +496,7 @@
     <string name="username">Používateľské meno</string>
     <string name="via_mqtt">cez MQTT</string>
     <string name="voltage">Napätie</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Vymazať cieľový bod?</string>
     <string name="waypoint_edit">Editovať cieľový bod</string>
     <string name="waypoint_new">Nový cieľový bod</string>

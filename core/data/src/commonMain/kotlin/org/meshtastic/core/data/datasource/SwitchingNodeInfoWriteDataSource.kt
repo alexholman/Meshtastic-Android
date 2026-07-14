@@ -34,9 +34,14 @@ class SwitchingNodeInfoWriteDataSource(
         withContext(dispatchers.io) { dbManager.withDb { it.nodeInfoDao().upsert(node) } }
     }
 
-    override suspend fun installConfig(mi: MyNodeEntity, nodes: List<NodeEntity>) {
-        withContext(dispatchers.io) { dbManager.withDb { it.nodeInfoDao().installConfig(mi, nodes) } }
-    }
+    override suspend fun installConfig(mi: MyNodeEntity, nodes: List<NodeEntity>): List<Int> =
+        withContext(dispatchers.io) {
+            // Throw rather than no-op when no database is available: the config-flow manager treats a
+            // successful install as "node DB ready → Connected", and its catch runs the transport
+            // recovery path — silently skipping the install would fake a healthy connection.
+            dbManager.withDb { it.nodeInfoDao().installConfig(mi, nodes) }
+                ?: error("Node DB install skipped: no active database")
+        }
 
     override suspend fun clearNodeDB(preserveFavorites: Boolean) {
         withContext(dispatchers.io) { dbManager.withDb { it.nodeInfoDao().clearNodeInfo(preserveFavorites) } }
@@ -64,6 +69,12 @@ class SwitchingNodeInfoWriteDataSource(
 
     override suspend fun setNodeNotes(num: Int, notes: String) {
         withContext(dispatchers.io) { dbManager.withDb { it.nodeInfoDao().setNodeNotes(num, notes) } }
+    }
+
+    override suspend fun updatePowerChannelLabel(num: Int, channelIndex: Int, label: String) {
+        withContext(dispatchers.io) {
+            dbManager.withDb { it.nodeInfoDao().updatePowerChannelLabel(num, channelIndex, label) }
+        }
     }
 
     override suspend fun backfillDenormalizedNames() {

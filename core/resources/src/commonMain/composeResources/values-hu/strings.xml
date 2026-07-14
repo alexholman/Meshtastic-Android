@@ -223,6 +223,7 @@
     <string name="delivery_confirmed">Kézbesítés sikeres</string>
     <string name="desc_node_filter_clear">állomás filter törlése</string>
     <string name="description">Leírás</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="details">Részletek</string>
     <string name="detection_sensor">Érzékelő szenzor</string>
@@ -299,11 +300,8 @@
     <string name="ethernet_ip">Ethernet IP:</string>
     <string name="exchange_position">Pozíciócsere</string>
     <string name="expires">Lejárat</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Beállítás exportálása</string>
     <string name="export_data_csv">Minden csomag exportálása</string>
-    <string name="export_keys">Kulcsok exportálása</string>
-    <string name="export_keys_confirmation">A nyilvános és privát kulcsokat fájlba exportálja. Kérlek, tárold biztonságos helyen.</string>
     <string name="external_notification">Külső értesítés</string>
     <string name="external_notification_config">Külső értesítés beállításai</string>
     <string name="external_notification_enabled">Külső értesítés engedélyezve</string>
@@ -326,6 +324,7 @@
     <string name="fixed_position">Rögzített pozíció</string>
     <string name="flip_screen">Kijelző megfordítása</string>
     <string name="for_more_information_see_our_privacy_policy">További információért lásd az adatvédelmi irányelveinket.</string>
+    <!-- FORMAT -->
     <string name="free_memory">Szabad memória</string>
     <string name="freq">Frekvencia</string>
     <string name="frequency_slot">Frekvencia sáv</string>
@@ -393,6 +392,7 @@
     <string name="ip_port">Port:</string>
     <string name="ipv4_mode">IPv4 mód</string>
     <string name="json_output_enabled">JSON kimenet engedélyezve</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="label_long_fast">Nagy hatótáv – Gyors</string>
     <string name="label_long_moderate">Nagy hatótáv – Közepes</string>
@@ -478,6 +478,9 @@
     <string name="match_all">Mind | Bármelyik</string>
     <string name="match_any">Bármelyik | Mind</string>
     <string name="max">Max</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Bezárás</string>
+    <string name="mesh_beacon_preset_none">Semmi</string>
     <string name="mesh_map_location">Mesh-térkép helyzet</string>
     <string name="mesh_map_location_description">Engedélyezi a telefon kék helyjelölőjét a mesh térképen.</string>
     <!-- MESHTASTIC -->
@@ -496,7 +499,6 @@
     <string name="message_delivery_status">Üzenet kézbesítésének állapota</string>
     <string name="message_device_managed">Ez a rádió felügyelt, és csak távoli admin módosíthatja.</string>
     <string name="message_input_label">Üzenet</string>
-    <string name="message_status_enroute">Visszajelzésre vár</string>
     <string name="message_status_queued">Elküldésre vár</string>
     <string name="message_status_unknown">Ismeretlen</string>
     <string name="messages">Üzenetek</string>
@@ -817,6 +819,8 @@
     <string name="shutdown_warning">⚠️ Ez LEÁLLÍTJA a csomópontot. Újraindításhoz fizikai beavatkozás szükséges.</string>
     <string name="signal">Jel</string>
     <string name="signal_quality">Jelminőség</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Kijelző</string>
     <string name="skip">Kihagyás</string>
     <string name="slot">Sávhely</string>
     <string name="smart_position">Intelligens pozíció</string>
@@ -867,6 +871,7 @@
     <string name="track_and_share_locations">Kövesd és oszd meg a helyzeted</string>
     <string name="track_point">nyomvonalpont</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Továbbítás LoRa-n keresztül</string>
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
@@ -919,6 +924,7 @@
     <string name="wait_for_bluetooth_duration_seconds">Bluetooth-várakozás időtartama</string>
     <string name="wake_on_tap_or_motion">Érintésre vagy mozgásra ébresztés</string>
     <string name="warning">Figyelmeztetés</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Útpont törlés?</string>
     <string name="waypoint_edit">Útpont szerkesztés</string>
     <string name="waypoint_new">Új útpont</string>

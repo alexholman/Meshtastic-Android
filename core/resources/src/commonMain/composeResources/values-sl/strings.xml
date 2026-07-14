@@ -72,6 +72,7 @@
     <string name="delivery_confirmed">Prejem potrjen</string>
     <string name="desc_node_filter_clear">Počisti filtre vozlišča</string>
     <string name="description">Opis</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">Naprava je v \"spanju\"</string>
     <string name="direct_message">Direktno sporočilo</string>
@@ -91,7 +92,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Napaka</string>
     <string name="error_duty_cycle">Dosežena je omejitev delovnega cikla. Trenutno ne morete pošiljati sporočil, poskusite kasneje.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Povrnitev tovarniških nastavitev</string>
     <string name="fair">Precejšen</string>
     <!-- FILTER -->
@@ -100,6 +100,7 @@
     <string name="firmware_old">Vdelana programska oprema radijskega sprejemnika je za pogovor s to aplikacijo prestara. Za več informacij o tem glejte<a href="https://meshtastic.org/docs/getting-started/flashing-firmware">naš vodnik za namestitev strojne programske opreme</a>.</string>
     <string name="firmware_too_old">Zastarela programska oprema.</string>
     <string name="firmware_update_failed">Posodobitev neuspešna</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <string name="good">Dober</string>
     <!-- GPIO -->
@@ -114,6 +115,7 @@
     <string name="interval_unset">Ni nastavljeno</string>
     <string name="intro_show">Pokaži napoved</string>
     <string name="ip_address">IP naslov:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -140,6 +142,8 @@
     <string name="map_tile_download_estimate">Ocena prenosa plošče:</string>
     <string name="map_tile_source">Vir plošcice</string>
     <string name="max">Maks.</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Brez</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_new_nodes_notifications">Obvestila novih vozlišč</string>
     <string name="meshtastic_service_notifications">Obvestila storitve</string>
@@ -147,7 +151,6 @@
     <string name="message">Sporočilo</string>
     <string name="message_delivery_status">Stanje poslanega sporočila</string>
     <string name="message_input_label">Sporočilo</string>
-    <string name="message_status_enroute">Čakanje na potrditev</string>
     <string name="message_status_queued">V čakalni vrsti za pošiljanje</string>
     <string name="module_settings">Nastavitev modula</string>
     <!-- MQTT -->
@@ -270,6 +273,7 @@
     <string name="shutdown">Ugasni</string>
     <string name="signal">Signal</string>
     <string name="signal_quality">Kakovost signala</string>
+    <!-- SITE -->
     <string name="snr">SNR</string>
     <string name="snr_definition">Razmerje med signalom in šumom je merilo, ki se uporablja v komunikacijah za količinsko opredelitev ravni želenega signala glede na raven hrupa v ozadju. V Meshtastic in drugih brezžičnih sistemih višji SNR pomeni jasnejši signal, ki lahko poveča zanesljivost in kakovost prenosa podatkov.</string>
     <!-- TAK -->
@@ -290,6 +294,7 @@
     </plurals>
     <string name="traceroute_log">Pot</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="twenty_four_hours">24ur</string>
     <string name="two_days">48 Ur</string>
@@ -301,6 +306,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">Preko MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Izbriši točko poti?</string>
     <string name="waypoint_edit">Uredi točko poti</string>
     <string name="waypoint_new">Nova točka poti</string>

@@ -16,7 +16,6 @@
  */
 package org.meshtastic.core.ui.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -42,20 +43,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.EventFirmwareEdition
+import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.event_use_event_theme
 import org.meshtastic.core.ui.icon.CalendarMonth
 import org.meshtastic.core.ui.icon.ChevronRight
 import org.meshtastic.core.ui.icon.LinkIcon
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Place
+import org.meshtastic.core.ui.theme.LocalEventThemeToggle
+import org.meshtastic.core.ui.util.EventBrandingIcon
 import org.meshtastic.core.ui.util.accentColorOrNull
-import org.meshtastic.core.ui.util.eventIconFor
 
 /**
  * Bottom sheet shown when the user taps the event branding in [MainAppBar]. Surfaces the event metadata the bundled
@@ -93,6 +97,30 @@ fun EventInfoSheet(edition: EventFirmwareEdition, onDismiss: () -> Unit) {
                         }
                     }
                 }
+
+                // Opt-out for the ambient event theme (accent wash + app-wide fonts). Always shown — the sheet only
+                // opens for an active event, so there's always a theme to govern.
+                val themeToggle = LocalEventThemeToggle.current
+                HorizontalDivider()
+                Row(
+                    modifier =
+                    Modifier.fillMaxWidth()
+                        .toggleable(
+                            value = themeToggle.enabled,
+                            onValueChange = themeToggle.onChange,
+                            role = Role.Switch,
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(Res.string.event_use_event_theme),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    // Row owns the toggle; null keeps the Switch visual-only (no double-fire).
+                    Switch(checked = themeToggle.enabled, onCheckedChange = null)
+                }
             }
         }
     }
@@ -108,14 +136,11 @@ private fun EventHeader(edition: EventFirmwareEdition, accent: Color?) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        eventIconFor(edition.edition)?.let { icon ->
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(48.dp).clip(CircleShape),
-            )
-        }
+        EventBrandingIcon(
+            edition = edition,
+            modifier = Modifier.size(48.dp).clip(CircleShape),
+            contentDescription = null,
+        )
         Text(
             text = edition.displayName,
             style = MaterialTheme.typography.headlineSmall,

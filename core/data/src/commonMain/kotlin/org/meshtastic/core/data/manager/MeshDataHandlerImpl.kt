@@ -38,6 +38,7 @@ import org.meshtastic.core.model.destination
 import org.meshtastic.core.model.isBroadcast
 import org.meshtastic.core.model.isFromLocal
 import org.meshtastic.core.model.source
+import org.meshtastic.core.model.textMentionsNode
 import org.meshtastic.core.model.util.MeshDataMapper
 import org.meshtastic.core.model.util.decodeOrNull
 import org.meshtastic.core.model.util.toOneLiner
@@ -207,7 +208,7 @@ class MeshDataHandlerImpl(
             }
 
             PortNum.MESH_BEACON_APP -> {
-                handleMeshBeacon(packet)
+                handleMeshBeacon(packet, myNodeNum)
             }
 
             else -> {}
@@ -225,12 +226,16 @@ class MeshDataHandlerImpl(
      * low-priority notification when the invitation is first seen (not on every periodic re-broadcast). Only beacons
      * carrying a join offer (a channel) are actionable; message-only beacons are ignored.
      */
-    private fun handleMeshBeacon(packet: MeshPacket) {
+    @Suppress("ReturnCount")
+    private fun handleMeshBeacon(packet: MeshPacket, myNodeNum: Int) {
+        // Ignore our own beacons (spec FR-001) — once broadcast is enabled a node that also listens would self-notify.
+        if (packet.from == myNodeNum) return
         val payload = packet.decoded?.payload ?: return
         val beacon = MeshBeacon.ADAPTER.decodeOrNull(payload, Logger)
         // Only actionable beacons (carrying a channel offer) that we haven't already seen warrant a notification.
         if (beacon?.offer_channel == null) return
-        val offer = MeshBeaconOffer(fromNodeNum = packet.from, beacon = beacon)
+        val offer =
+            MeshBeaconOffer(fromNodeNum = packet.from, beacon = beacon, snr = packet.rx_snr, rssi = packet.rx_rssi)
         if (meshBeaconRepository.add(offer)) {
             scope.launch {
                 notificationManager.dispatch(
@@ -412,7 +417,13 @@ class MeshDataHandlerImpl(
     ) {
         val conversationMuted = packetRepository.value.getContactSettings(contactKey).isMuted
         val nodeMuted = nodeManager.getNodeById(dataPacket.from.orEmpty())?.isMuted == true
-        val isSilent = conversationMuted || nodeMuted
+        // A mention of our own id is a targeted ping, so it breaks through a muted channel/conversation
+        // (per meshtastic/design#21). Node mute is a stronger, per-sender signal and stays authoritative:
+        // a muted node cannot force a notification by spamming @-mentions.
+        val mentionsMe =
+            dataPacket.dataType == PortNum.TEXT_MESSAGE_APP.value &&
+                textMentionsNode(dataPacket.text, nodeManager.getMyId())
+        val isSilent = nodeMuted || (conversationMuted && !mentionsMe)
         if (dataPacket.dataType == PortNum.ALERT_APP.value && !isSilent) {
             scope.launch {
                 notificationManager.dispatch(

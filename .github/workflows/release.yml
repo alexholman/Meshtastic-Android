@@ -54,10 +54,6 @@ on:
         required: false
       GRADLE_CACHE_PASSWORD:
         required: false
-      INTERNAL_BUILDS_HOST:
-        required: false
-      INTERNAL_BUILDS_HOST_PAT:
-        required: false
       APPLE_SIGNING_IDENTITY:
         required: false
       APPLE_ID:
@@ -65,6 +61,20 @@ on:
       APPLE_APP_SPECIFIC_PASSWORD:
         required: false
       APPLE_TEAM_ID:
+        required: false
+      # Windows Authenticode signing via Azure Trusted Signing (now "Artifact Signing").
+      # All optional: the signing step skips cleanly when absent, like macOS above.
+      AZURE_TENANT_ID:
+        required: false
+      AZURE_CLIENT_ID:
+        required: false
+      AZURE_CLIENT_SECRET:
+        required: false
+      AZURE_TRUSTED_SIGNING_ENDPOINT:
+        required: false
+      AZURE_TRUSTED_SIGNING_ACCOUNT:
+        required: false
+      AZURE_TRUSTED_SIGNING_CERT_PROFILE:
         required: false
 
 concurrency:
@@ -268,11 +278,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-22.04, ubuntu-22.04-arm]
+        os: [macos-latest, windows-latest, ubuntu-24.04, ubuntu-24.04-arm]
     env:
       GRADLE_CACHE_URL: ${{ secrets.GRADLE_CACHE_URL }}
       GRADLE_CACHE_USERNAME: ${{ secrets.GRADLE_CACHE_USERNAME }}
       GRADLE_CACHE_PASSWORD: ${{ secrets.GRADLE_CACHE_PASSWORD }}
+      # Secrets aren't readable in step `if:` expressions, so surface presence here.
+      SIGN_WINDOWS: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT != '' && 'true' || 'false' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7.0.0
@@ -290,7 +302,7 @@ jobs:
 
       - name: Install dependencies for AppImage
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libfuse2
+        run: sudo apt-get update && sudo apt-get install -y libfuse2t64
 
       - name: Package Native Distributions
         env:
@@ -310,7 +322,78 @@ jobs:
         run: >
           ./gradlew :desktopApp:packageReleaseDistributionForCurrentOS
           ${{ contains(runner.os, 'macOS') && ':desktopApp:packageReleaseUberJarForCurrentOS' || '' }}
-          '-PaboutLibraries.release=true' --no-daemon
+          '-PaboutLibraries.release=true' '-Pdesktop.release=true' --no-daemon
+
+      # Authenticode-signs the MSI/EXE installers via Azure Trusted Signing
+      # (rebranded "Artifact Signing"). Skips cleanly when the secrets are
+      # absent, mirroring SIGN_MACOS. Required repository secrets:
+      #   AZURE_TENANT_ID                    – Entra tenant ID
+      #   AZURE_CLIENT_ID                    – app registration (service principal) client ID
+      #   AZURE_CLIENT_SECRET                – client secret for that app registration
+      #   AZURE_TRUSTED_SIGNING_ENDPOINT     – e.g. https://eus.codesigning.azure.net
+      #   AZURE_TRUSTED_SIGNING_ACCOUNT      – Trusted Signing account name
+      #   AZURE_TRUSTED_SIGNING_CERT_PROFILE – public-trust certificate profile name
+      # The service principal needs the "Trusted Signing Certificate Profile
+      # Signer" role on the account. Presence is gated on the ENDPOINT secret;
+      # a half-configured set fails here loudly rather than shipping unsigned.
+      # Note: only the installers are signed, not the launcher .exe packaged
+      # inside them — SmartScreen reputation attaches to the downloaded file.
+      # Sign the inner .exe between createReleaseDistributable and packaging
+      # if that ever becomes necessary.
+      - name: Sign Windows installers (Azure Trusted Signing)
+        if: runner.os == 'Windows' && env.SIGN_WINDOWS == 'true'
+        uses: azure/artifact-signing-action@v2.0.0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_CERT_PROFILE }}
+          files-folder: desktopApp/build/compose/binaries/main-release
+          files-folder-filter: msi,exe
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # jpackage computes the .deb Depends: line from the build host's package names.
+      # Ubuntu 24.04 records time_t64 transition names (libasound2t64, libpng16-16t64)
+      # that don't exist on Debian 12 Bookworm / Raspberry Pi OS, making the .deb
+      # uninstallable there (#5233 pinned ubuntu-22.04 for this; those runners retire
+      # 2027-04, brownouts from 2026-09). Strip the t64 suffix instead: Bookworm ships
+      # the plain names, and on Trixie / Ubuntu 24.04+ the t64 packages Provide them.
+      # Rewriting the control file is the only host-independent fix — jpackage's
+      # --linux-package-deps is additive-only, and the Compose plugin clears its
+      # --resource-dir during the task, so a custom control template can't be injected.
+      - name: Rewrite t64 dependency names in .deb (Debian Bookworm / Pi OS compatibility)
+        if: runner.os == 'Linux'
+        run: |
+          shopt -s nullglob
+          for deb in desktopApp/build/compose/binaries/main-release/deb/*.deb; do
+            work=$(mktemp -d)
+            dpkg-deb -R "$deb" "$work"
+            echo "$(basename "$deb") before: $(grep '^Depends:' "$work/DEBIAN/control")"
+            sed -i -E '/^(Depends|Pre-Depends|Recommends):/ s/(lib[a-z0-9.+-]*)t64([, (]|$)/\1\2/g' "$work/DEBIAN/control"
+            echo "$(basename "$deb") after:  $(grep '^Depends:' "$work/DEBIAN/control")"
+            if grep -nE '^[A-Za-z-]+:.*\blib[a-z0-9.+-]*t64\b' "$work/DEBIAN/control"; then
+              echo "::error::t64 dependency name survived rewrite in $(basename "$deb") — extend the sed above"
+              exit 1
+            fi
+            dpkg-deb -b --root-owner-group "$work" "$deb"
+            rm -rf "$work"
+          done
+
+      # CMP's TargetFormat.AppImage is jpackage's "app-image" — an unpacked
+      # directory, not a Linux .AppImage. Wrap it into a real AppImage so
+      # Linux users get a portable no-install binary alongside .deb/.rpm.
+      # This is what the libfuse2t64 install above is for: appimagetool is
+      # itself an AppImage (APPIMAGE_EXTRACT_AND_RUN is the no-FUSE fallback).
+      - name: Build AppImage from jpackage app-image
+        if: runner.os == 'Linux'
+        env:
+          APP_VERSION_NAME: ${{ needs.prepare-build-info.outputs.APP_VERSION_NAME }}
+        run: scripts/build-appimage.sh
 
       - name: List Desktop Binaries
         if: runner.os == 'Linux' || runner.os == 'macOS'
@@ -352,7 +435,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm]
+        # No .deb host-coupling here (pure-Java uber jar + URL manifest) — free to track
+        # the current LTS image.
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
     env:
       GRADLE_CACHE_URL: ${{ secrets.GRADLE_CACHE_URL }}
       GRADLE_CACHE_USERNAME: ${{ secrets.GRADLE_CACHE_USERNAME }}
@@ -445,8 +530,6 @@ jobs:
       - release-fdroid
       - release-desktop
       - release-flatpak-src
-    env:
-      INTERNAL_BUILDS_HOST: ${{ secrets.INTERNAL_BUILDS_HOST }}
     permissions:
       contents: write
       id-token: write
@@ -474,18 +557,4 @@ jobs:
           generate_release_notes: true
           files: ./artifacts/**/*
           draft: true
-          prerelease: true
-
-      - name: Create or Update internal GitHub Release
-        continue-on-error: true
-        if: ${{ env.INTERNAL_BUILDS_HOST != '' }}
-        uses: softprops/action-gh-release@v3
-        with:
-          repository: ${{ secrets.INTERNAL_BUILDS_HOST }}
-          token: ${{ secrets.INTERNAL_BUILDS_HOST_PAT }}
-          tag_name: ${{ inputs.tag_name }}
-          name: ${{ inputs.tag_name }} (${{ needs.prepare-build-info.outputs.APP_VERSION_CODE }})
-          generate_release_notes: false
-          files: ./artifacts/**/*
-          draft: false
           prerelease: true

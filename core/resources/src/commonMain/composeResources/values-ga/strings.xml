@@ -68,6 +68,7 @@
     <string name="delivery_confirmed">Seachadadh deimhnithe</string>
     <string name="desc_node_filter_clear">Cuir scagaire na nóid in áirithe</string>
     <string name="description">Cur síos</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">Gléas ina chodladh</string>
     <string name="direct_message">Teachtaireacht dhíreach</string>
@@ -87,7 +88,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Earráid</string>
     <string name="error_duty_cycle">Teorainn na Ciorcad Oibre bainte. Ní féidir teachtaireachtaí a sheoladh faoi láthair, déan iarracht arís níos déanaí.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Athshocraigh an fhactaraí</string>
     <string name="fair">Ceart go leor</string>
     <!-- FILTER -->
@@ -96,6 +96,7 @@
     <string name="firmware_old">Tá an firmware raidió ró-aoiseach chun cumarsáid a dhéanamh leis an aip seo. Chun tuilleadh eolais a fháil, féach <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">ár gCúnamh Suiteála Firmware</a>.</string>
     <string name="firmware_too_old">Nuashonrú teastaíonn ar an gcórais.</string>
     <string name="firmware_update_failed">Nuacht nuashonraithe</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <string name="good">Maith</string>
     <!-- GPIO -->
@@ -110,6 +111,7 @@
     <string name="interval_unset">Díshocraigh</string>
     <string name="intro_show">Taispeáin Úvod</string>
     <string name="ip_address">Seoladh IP:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -135,6 +137,8 @@
     <string name="map_subDescription">comhthéacs: %1$d° achar: %2$s</string>
     <string name="map_tile_download_estimate">Meastachán íoslódála tile:</string>
     <string name="map_tile_source">Foinse Tíle</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Ní dhéanfaidh sé</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_new_nodes_notifications">Fógartha faoi na nodes nua</string>
     <string name="meshtastic_service_notifications">Fógraí seirbhíse</string>
@@ -142,7 +146,6 @@
     <string name="message">Teachtaireacht</string>
     <string name="message_delivery_status">Stádas seachadta teachtaireachta</string>
     <string name="message_input_label">Teachtaireacht</string>
-    <string name="message_status_enroute">Ag fanacht le ceadú</string>
     <string name="message_status_queued">Cur síos ar sheoladh</string>
     <string name="module_settings">Cumraíocht an mhódule</string>
     <!-- MQTT -->
@@ -257,6 +260,7 @@
     <string name="shutdown">Dún</string>
     <string name="signal">Sígneal</string>
     <string name="signal_quality">Cáilíocht na Sígneal</string>
+    <!-- SITE -->
     <string name="snr_definition">Ráta Sigineal go Torann, tomhas a úsáidtear i gcomhfhreagras chun an leibhéal de shígnéil inmhianaithe agus torann cúlra a mheas. I Meshtastic agus i gcórais gan sreang eile, ciallaíonn SNR níos airde go bhfuil sígneál níos soiléire ann agus ábalta méadú ar chreideamh agus cáilíocht an tarchur sonraí.</string>
     <!-- TAK -->
     <string name="theme">Téama</string>
@@ -277,6 +281,7 @@
     </plurals>
     <string name="traceroute_log">Céim rianadóireachta</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="two_days">48 Uair an chloig</string>
     <!-- UNKNOWN -->
@@ -286,6 +291,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">trí MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Scrios an pointe bealach?</string>
     <string name="waypoint_edit">Cuir in eagar an pointe bealach</string>
     <string name="waypoint_new">Pointe bealach nua</string>

@@ -62,6 +62,7 @@
     <string name="delivery_confirmed">Entrega confirmada</string>
     <string name="desc_node_filter_clear">quitar filtro de nodo</string>
     <string name="description">Descrición</string>
+    <!-- DESKTOP -->
     <!-- DEVICE -->
     <string name="device_sleeping">Dispositivo durmindo</string>
     <string name="direct_message">Mensaxe directa</string>
@@ -77,7 +78,6 @@
     <!-- ENVIRONMENT -->
     <string name="error">Erro</string>
     <string name="error_duty_cycle">O límite do Ciclo de Traballo de Sinal foi alcanzado. Non se pode enviar mensaxes agora, inténtao despois.</string>
-    <!-- EXPORT -->
     <string name="factory_reset">Restablecemento de fábrica</string>
     <!-- FILTER -->
     <string name="filter_icon">Filtro</string>
@@ -85,6 +85,7 @@
     <string name="firmware_old">O firmware de radio é moi vello para falar con esta aplicación. Para máis información nisto visita <a href="https://meshtastic.org/docs/getting-started/flashing-firmware"> a nosa guía de instalación de Firmware</a>.</string>
     <string name="firmware_too_old">Actualización de firmware necesaria.</string>
     <string name="firmware_update_failed">Actualización fallou</string>
+    <!-- FORMAT -->
     <!-- GEOFENCE -->
     <!-- GPIO -->
     <!-- IGNORE -->
@@ -95,6 +96,7 @@
     <string name="intro_show">Amosar introdución</string>
     <string name="ip_address">Enderezo IP:</string>
     <string name="ip_port">Porto:</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <!-- LOAD -->
     <!-- LOCAL -->
@@ -119,6 +121,7 @@
     <string name="map_subDescription">rumbo: %1$d distancia:%2$s</string>
     <string name="map_tile_download_estimate">Descarga de 'tile' estimada:</string>
     <string name="map_tile_source">Fonte de 'tile'</string>
+    <!-- MESH -->
     <!-- MESHTASTIC -->
     <string name="meshtastic_service_notifications">Notificacións de servizo</string>
     <!-- MESSAGE -->
@@ -204,6 +207,7 @@
     <string name="share">Compartir</string>
     <!-- SHOW -->
     <string name="shutdown">Apagar</string>
+    <!-- SITE -->
     <!-- TAK -->
     <string name="theme">Tema</string>
     <string name="theme_dark">Escuro</string>
@@ -213,6 +217,7 @@
     <string name="traceroute">Traza-ruta</string>
     <string name="traceroute_log">Traza-ruta</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <!-- TRANSPORT -->
     <string name="two_days">48 Horas</string>
     <!-- UNKNOWN -->
@@ -222,6 +227,7 @@
     <!-- USE -->
     <!-- USER -->
     <string name="via_mqtt">vía MQTT</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Eliminar punto de ruta?</string>
     <string name="waypoint_edit">Editar punto de ruta</string>
     <string name="waypoint_new">Novo punto de ruta</string>

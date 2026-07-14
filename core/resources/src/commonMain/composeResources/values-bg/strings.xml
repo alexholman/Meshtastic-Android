@@ -75,6 +75,7 @@
     <string name="app_too_old">Изисква се актуализация на приложението</string>
     <string name="app_version">Версия</string>
     <string name="apply">Приложи</string>
+    <string name="aqi">AQI</string>
     <string name="are_you_sure">Сигурни ли сте?</string>
     <string name="are_you_sure_change_default">Сигурни ли сте, че искате да промените канала по подразбиране?</string>
     <string name="audio">Аудио</string>
@@ -229,6 +230,7 @@
     <string name="debug_filter_included">Филтъра включва</string>
     <string name="debug_filter_preset_title">Предварително зададени филтри</string>
     <string name="debug_filters">Филтри</string>
+    <string name="debug_logcat_refresh">Опресняване</string>
     <string name="debug_logs_export">Експортиране на журнали</string>
     <string name="debug_panel">Панел за отстраняване на грешки</string>
     <string name="debug_search_clear">Изчистване на търсенето</string>
@@ -236,6 +238,7 @@
     <string name="debug_search_prev">Предишно съответствие</string>
     <string name="debug_store_logs_summary">Деактивирайте, за да пропуснете записването на журналите на mesh мрежата на диска</string>
     <string name="debug_store_logs_title">Съхраняване на mesh мрежови журнали</string>
+    <string name="debug_tab_packets">Пакети</string>
     <string name="default_">По подразбиране</string>
     <!-- DELETE -->
     <string name="delete">Изтриване</string>
@@ -252,6 +255,7 @@
     <string name="demo_mode">Демо режим</string>
     <string name="desc_node_filter_clear">изчистване на филтъра за възли</string>
     <string name="description">Описание</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Meshtastic</string>
     <string name="desktop_tray_quit">Изход</string>
     <string name="details">Подробности</string>
@@ -274,6 +278,7 @@
     <string name="device_theme_language">Тема: %1$s, Език: %2$s</string>
     <string name="dew_point">Точка на оросяване</string>
     <string name="direct_message">Директно съобщение</string>
+    <string name="direct_messages">Директни съобщения</string>
     <string name="discard_changes">Отхвърляне</string>
     <string name="disconnect">Прекъсване на връзката</string>
     <string name="disconnected">Прекъсната връзка</string>
@@ -287,7 +292,6 @@
     <string name="discovery_scan_progress">Напредък на сканирането</string>
     <string name="discovery_start_scan_disabled">Бутонът за стартиране на сканиране е деактивиран. %1$s</string>
     <string name="discovery_start_scan_reason_24ghz_unsupported">радио хардуерът не поддържа 2.4 GHz</string>
-    <string name="discovery_start_scan_reason_default_key">каналът използва ключ за криптиране по подразбиране</string>
     <string name="discovery_stat_analysis">Анализ</string>
     <string name="discovery_stat_avg_channel_utilization">Средно използване на канала</string>
     <string name="discovery_stat_channel_utilization">Използване на канала</string>
@@ -377,12 +381,9 @@
     <string name="exchange_position">Размяна на позиция</string>
     <string name="expand_chart">Разгъване на диаграмата</string>
     <string name="expires">Изтича</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Експортиране на конфигурацията</string>
     <string name="export_data_csv">Експортиране на всички пакети</string>
     <string name="export_gpx">Експортиране на GPX</string>
-    <string name="export_keys">Експортиране на ключовете</string>
-    <string name="export_keys_confirmation">Експортира публичния и частния ключове във файл. Моля, съхранявайте го на сигурно място.</string>
     <string name="external_notification">Външно известие</string>
     <string name="external_notification_config">Конфигуриране на външни известия</string>
     <string name="external_notification_enabled">Външните известия са активирани</string>
@@ -469,6 +470,7 @@
     <string name="fixed_position">Фиксирана позиция</string>
     <string name="flip_screen">Обръщане на екрана</string>
     <string name="for_more_information_see_our_privacy_policy">За повече информация вижте нашата политика за поверителност.</string>
+    <!-- FORMAT -->
     <string name="free_memory">Свободна памет</string>
     <string name="free_memory_description">Налична системна памет в байтове</string>
     <string name="freq">Чест.</string>
@@ -525,6 +527,7 @@
     <string name="ip_address">IP адрес:</string>
     <string name="ip_port">Порт:</string>
     <string name="ipv4_mode">Режим на IPv4</string>
+    <!-- KEY -->
     <string name="key_verification_final_title">Проверката на ключа е завършена</string>
     <string name="key_verification_request_title">Заявка за проверка на ключ</string>
     <string name="key_verification_title">Проверка на ключ</string>
@@ -621,6 +624,9 @@
     <string name="map_type_terrain">Терен</string>
     <string name="mark_as_read">Маркиране като прочетено</string>
     <string name="max">Макс</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_offer_dismiss">Отхвърляне</string>
+    <string name="mesh_beacon_preset_none">Няма</string>
     <string name="mesh_map_location">Местоположение на mesh карта</string>
     <string name="mesh_map_location_description">Активира синята точка за местоположение на телефона ви в mesh карта.</string>
     <!-- MESHTASTIC -->
@@ -639,7 +645,6 @@
     <string name="message_device_managed">Това радио се управлява и може да бъде променяно само от отдалечен администратор.</string>
     <string name="message_input_label">Съобщение</string>
     <string name="message_status_delivered">Доставено до mesh</string>
-    <string name="message_status_enroute">Изчакване за потвърждение</string>
     <string name="message_status_queued">Наредено на опашка за изпращане</string>
     <string name="message_status_sfpp_routing"></string>
     <string name="message_status_unknown">Неизвестно</string>
@@ -1018,6 +1023,8 @@
     <string name="shutdown_warning">⚠️ Това ще ИЗКЛЮЧИ възела. Ще е необходимо физическо взаимодействие, за да се включи отново.</string>
     <string name="signal">Сигнал</string>
     <string name="signal_quality">Качество на сигнала</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Дисплей</string>
     <string name="skip">Пропускане</string>
     <string name="slot">Слот</string>
     <string name="smart_position">Интелигентна позиция</string>
@@ -1096,6 +1103,8 @@
     <string name="traffic_management">Управление на трафика</string>
     <string name="traffic_management_enabled">Модулът е активиран</string>
     <string name="traffic_management_nodeinfo_direct_response_max_hops">Максимален брой отскоци за директен отговор</string>
+    <string name="translate">Превод</string>
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Предаване през LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_ble">BLE</string>
@@ -1154,6 +1163,7 @@
     <string name="voltage">Напрежение</string>
     <string name="wake_on_tap_or_motion">Събуждане при докосване или движение</string>
     <string name="warning">Предупреждение</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Изтриване на пътна точка?</string>
     <string name="waypoint_edit">Редактиране на пътна точка</string>
     <string name="waypoint_new">Нова пътна точка</string>

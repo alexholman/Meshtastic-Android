@@ -28,6 +28,7 @@
     <string name="a11y_node_online">ühenduses</string>
     <string name="a11y_node_role">roll %1$s</string>
     <string name="a11y_node_signal">signaal %1$s</string>
+    <string name="a11y_nodes_at_hop">Hüpet %1$d: %2$d seadmeni</string>
     <string name="accept">Nõustu</string>
     <string name="acknowledgements">Tänusõnad</string>
     <!-- ACTION -->
@@ -39,6 +40,8 @@
     <string name="action_select_network">Vali võrk</string>
     <string name="action_send_reply">Saada vastus</string>
     <string name="action_show_message_status">Kuva sõnumi olek</string>
+    <string name="action_toggle_translation">Vaheta algse ja tõlgitud teksti vahel</string>
+    <string name="action_translate_message">Tõlgi sõnum</string>
     <string name="actions">Toimingud</string>
     <string name="adc_multiplier_override">ADC kordaja tühistamine</string>
     <string name="adc_multiplier_override_ratio">Asenda ADC kordistaja suhe</string>
@@ -109,12 +112,15 @@
     <string name="app_too_old">Vajalik on rakenduse värskendus</string>
     <string name="app_version">Versioon</string>
     <string name="apply">Rakenda</string>
+    <string name="aqi">AQI</string>
     <string name="are_you_sure">Oled kindel?</string>
     <string name="are_you_sure_change_default">Kas oled kindel, et soovid vaikekanalit muuta?</string>
     <string name="audio">Heli</string>
     <string name="audio_config">Heli sätted</string>
     <string name="available_pins">Saadaval klemmid</string>
     <string name="back">Tagasi</string>
+    <string name="backup_keys">Taastevõtmed</string>
+    <string name="backup_keys_confirmation">Salvestab avalikud ja privaatvõtmed selle seadme turvalisse ja krüpteeritud salvestusruumi.</string>
     <string name="backup_restore">Varunda &amp; Taasta</string>
     <string name="bad">Halb</string>
     <string name="bandwidth">Ribalaius</string>
@@ -135,11 +141,12 @@
     <string name="bluetooth_feature_discovery">Avastamine</string>
     <string name="bluetooth_feature_discovery_description">Leia ja tuvasta lähedal asuvad Meshtastic seadmed.</string>
     <string name="bluetooth_permission">Sinihammas</string>
+    <string name="bluetooth_scan_start_failed">Sinihamba otsingut ei õnnestunud alustada. Proovi uuesti või lülita sinihammas sisse/välja, kui probleem püsib.</string>
     <string name="bold_heading">Paks pealkiri</string>
     <string name="bonding_failed_permissions">Sidumine ebaõnnestus. Anna lähedal asuvatele seadmetele luba ja proovi uuesti.</string>
     <string name="bonding_failed_retry">Sidumine ebaõnnestus. Proovi siduda uuesti.</string>
     <string name="bottom_nav_settings">Sätted</string>
-    <string name="broadcast_interval">Levinteintervall</string>
+    <string name="broadcast_interval">Levitamise inteintervall</string>
     <string name="busy_noise_floor">Hõivatuse tase</string>
     <string name="button_gpio">Nupu GPIO</string>
     <string name="buzzer_gpio">Summeri GPIO</string>
@@ -148,6 +155,7 @@
     <string name="call_sign_summary">Sinu amatöörraadio kutsung, kuni 8 tähemärki</string>
     <string name="camera_permission">Luba kaamera</string>
     <string name="camera_permission_rationale">QR-koodide skaneerimiseks luba kaamera juurdepääs.</string>
+    <string name="camera_unavailable">Kaamera ei käivitunud. Proovi uuesti või sulge skanner ja ava see uuesti.</string>
     <string name="cancel">Tühista</string>
     <string name="cancel_reply">Tühista vastus</string>
     <string name="canned_message">Salvestatud sõnum</string>
@@ -208,6 +216,8 @@
     <string name="close">Sule</string>
     <string name="close_selection">Sulge valik</string>
     <string name="co2">CO₂</string>
+    <string name="co2_humidity">CO₂ Nsk</string>
+    <string name="co2_temperature">CO₂ Temp</string>
     <string name="codec_2_enabled">CODEC 2 lubatud</string>
     <string name="codec2_sample_rate">CODEC2 test sagedus</string>
     <string name="coding_rate">Kodeerimiskiirus</string>
@@ -246,7 +256,7 @@
     <string name="config_display_wake_on_tap_or_motion_summary">Vajalik, et teie seadmes oleks kiirendusmõõtur.</string>
     <string name="config_lora_frequency_slot_summary">Teie sõlme töösagedus arvutatakse piirkonna, modemi eelseadistuse ja selle välja põhjal. Kui see on 0, arvutatakse pesa automaatselt primaarse kanali nime põhjal ja see muutub vaikimisi avalikust pesast. Muutke see tagasi avalikuks vaikepesaks, kui privaatsed primaarsed ja avalikud sekundaarsed kanalid on konfigureeritud.</string>
     <string name="config_lora_hop_limit_summary">Määrab hüpete maksimaalse arvu, vaikimisi on see 3. Hüpete suurendamine suurendab ka ülekoormust ja seda tuleks kasutada ettevaatlikult. 0 hüppega leviedastussõnumid ei saa ACK-sid.</string>
-    <string name="config_lora_modem_preset_licensed_summary">Selle piirkonna eelseadistused on ainult litsentseeritud (amatöörraadio) operaatoritele. Nende valimiseks lubage kasutaja konfis litsentseeritud amatöörraadio (amatöör).</string>
+    <string name="config_lora_modem_preset_licensed_summary">Selle piirkonna eelseadistused on ainult litsentseeritud (amatöörraadio) operaatoritele. Nende valimiseks luba kasutaja konfis litsentseeritud amatöörraadio (amatöör).</string>
     <string name="config_lora_modem_preset_summary">Saadaval olevad modemi eelseadistused, vaikesäte on Long Fast.</string>
     <string name="config_lora_region_summary">Raadio kasutama hakkamise piirkond.</string>
     <string name="config_network_eth_enabled_summary">Etherneti lubamine keelab sinihamba ühenduse rakendusega. TCP-sõlmede ühendused pole Apple'i seadmetes saadaval.</string>
@@ -259,7 +269,7 @@
     <string name="config_position_gps_update_interval_summary">Kui tihti peaksime proovima GPS asukohta määrata (&lt;10sekundit hoiab GPSi sisselülitatuna).</string>
     <string name="config_power_is_power_saving_summary">Unereziimis nii palju kui võimalik, jälgitava ja anduri rolli puhul hõlmab see ka Lora raadiot. Ärge kasutage seda sätet, kui soovite oma seadet kasutada telefonirakendustega või kui kasutate seadet ilma kasutajanuputa.</string>
     <string name="config_security_admin_key">Avalik võti, millel on õigus sellele sõlmele administraatori sõnumeid saata.</string>
-    <string name="config_security_debug_log_api_enabled">Väljunda reaalajas silumislogi jadapordi kaudu, vaata ja salvesta asukoha redigeerimisega seadmelogisid sinihamba ​​kaudu.</string>
+    <string name="config_security_debug_log_api_enabled">Väljunda reaalajas arendajalogi jadapordi kaudu, vaata ja salvesta asukoha redigeerimisega seadmelogisid sinihamba ​​kaudu.</string>
     <string name="config_security_is_managed">Seadet haldab kärgvõrgu administraator, kasutajal pole juurdepääsu seadme sätetele.</string>
     <string name="config_security_private_key">Kasutatakse jagatud võtme loomiseks kaugseadmega.</string>
     <string name="config_security_public_key">Genereeritakse privaatvõtmest ja saadetakse kärgvõrgu sõlmedele, et nad saaksid koostada jagatud salajase võtme.</string>
@@ -309,19 +319,26 @@
     <string name="debug_filter_preset_title">Eelseadistatud filtrid</string>
     <string name="debug_filters">Filtrid</string>
     <string name="debug_log_api_enabled">Silumislogi API lubatud</string>
+    <string name="debug_logcat_empty">Rakenduste logisid pole kuvada</string>
+    <string name="debug_logcat_refresh">Värskenda</string>
     <string name="debug_logs_export">Salvesta logi</string>
+    <string name="debug_logs_exported">Eksporditud logid</string>
     <string name="debug_panel">Arendaja paneel</string>
     <string name="debug_search_clear">Puhasta otsing</string>
     <string name="debug_search_next">Järgmine</string>
     <string name="debug_search_prev">Eelmine</string>
     <string name="debug_store_logs_summary">Keela võrgusõlme logide kettale kirjutamise vahele jätmine</string>
     <string name="debug_store_logs_title">Salvesta võrgusõlme logiid</string>
+    <string name="debug_tab_app_logs">Rakenduse logi</string>
+    <string name="debug_tab_packets">Paketid</string>
     <string name="default_">Vaikimisi</string>
     <!-- DELETE -->
     <string name="delete">Eemalda</string>
     <string name="delete_custom_tile_source">Kustuta võrgupaani allikas</string>
     <string name="delete_for_everyone">Eemalda kõigi jaoks</string>
     <string name="delete_for_me">Eemalda minult</string>
+    <string name="delete_key_backup">Kustuta taastevõtmed</string>
+    <string name="delete_key_backup_confirmation">Kustutab sellesse seadmesse salvestatud krüpteeritud taastevõtme. Seda ei saa tagasi võtta.</string>
     <plurals name="delete_messages">
         <item quantity="one">Kustuta sõnum?</item>
         <item quantity="other">Kustuta %1$s sõnumit?</item>
@@ -334,6 +351,7 @@
     <string name="demo_mode_replay">Demorežiim (kordus)</string>
     <string name="desc_node_filter_clear">eemalda sõlmefilter</string>
     <string name="description">Kirjeldus</string>
+    <!-- DESKTOP -->
     <string name="desktop_notification_title">Kärgvõrgustik</string>
     <string name="desktop_tray_quit">Sule</string>
     <string name="desktop_tray_show">Näita Meshtastic</string>
@@ -366,6 +384,7 @@
     <string name="dew_point">Kastepunkt</string>
     <string name="direct_message">Otsesõnum</string>
     <string name="direct_message_key">Otsesõnumi võti</string>
+    <string name="direct_messages">Otsesõnumid</string>
     <string name="discard_changes">Tühista</string>
     <string name="disconnect">Katkesta ühendus</string>
     <string name="disconnected">Ühendus katkenud</string>
@@ -377,9 +396,9 @@
     <string name="discovery_delete_session">Kustuta seanss</string>
     <string name="discovery_delete_session_confirm">Kas oled kindel, et soovid selle avastusseansi kustutada? Seda toimingut ei saa tagasi võtta.</string>
     <string name="discovery_dwell_minutes">%1$d min</string>
-    <string name="discovery_dwell_progress">Viivitus %1$s peal, %2$s on jäänud</string>
-    <string name="discovery_dwell_time">Viivitusaeg</string>
-    <string name="discovery_dwell_time_description">Eelhäälestatud salvestuse kuulamise aeg</string>
+    <string name="discovery_dwell_progress">Kuulan %1$s peal, %2$s on jäänud</string>
+    <string name="discovery_dwell_time">Kuulamisaeg</string>
+    <string name="discovery_dwell_time_description">Eelmääratud salvestuse kuulamise aeg</string>
     <string name="discovery_empty_history">Avastusseansse veel pole</string>
     <string name="discovery_export_report">Salvesta aruanne</string>
     <string name="discovery_history">Avastuste ajalugu</string>
@@ -408,7 +427,6 @@
     <string name="discovery_start_scan">Alusta skaneerimine</string>
     <string name="discovery_start_scan_disabled">Skaneerimise alustamise nupp on keelatud. %1$s</string>
     <string name="discovery_start_scan_reason_24ghz_unsupported">raadio riistvara ei toeta 2,4 GHz</string>
-    <string name="discovery_start_scan_reason_default_key">kanal kasutab vaikimisi krüpteerimisvõtit</string>
     <string name="discovery_start_scan_reason_no_presets">pole valitud eelseadistust</string>
     <string name="discovery_start_scan_reason_not_connected">seade pole ühendatud</string>
     <string name="discovery_stat_analysis">Analüüs</string>
@@ -419,7 +437,7 @@
     <string name="discovery_stat_date">Kuupäev</string>
     <string name="discovery_stat_direct">Otsene</string>
     <string name="discovery_stat_duplicate_packets">Topelt paketid</string>
-    <string name="discovery_stat_dwelling_on">Peatun %1$s</string>
+    <string name="discovery_stat_dwelling_on">Kuulan %1$s</string>
     <string name="discovery_stat_failure_rate">Ebaõnnestumise määr</string>
     <string name="discovery_stat_home_preset">Avalehe eelseadistus</string>
     <string name="discovery_stat_mesh">Kärgvõrk</string>
@@ -435,7 +453,7 @@
     <string name="discovery_stat_session_overview">Seansi ülevaade</string>
     <string name="discovery_stat_status">Staatus</string>
     <string name="discovery_stat_success_rate">Edukuse määr</string>
-    <string name="discovery_stat_total_dwell_time">Kogu viivitusaeg</string>
+    <string name="discovery_stat_total_dwell_time">Kogu kuulamisaeg</string>
     <string name="discovery_stat_total_messages">Sõnumite koguarv</string>
     <string name="discovery_stat_total_unique_nodes">Unikaalsete sõlmede arv</string>
     <string name="discovery_stat_unique_nodes">Unikaalsed sõlmed</string>
@@ -464,18 +482,19 @@
     <string name="doc_keywords_android_auto">android auto,auto,peakomplekt,sõitmine,käed-vabad seadmed,sõnumside</string>
     <string name="doc_keywords_app_functions">süsteemi ti, gemini, assistent, funktsioonid, automatiseerimine, hääl</string>
     <string name="doc_keywords_connections">bluetooth,usb,tcp,pairing,serial,wifi</string>
+    <string name="doc_keywords_debug_logs">arendaja,logid,logcat,eksport,veateade,probleem,tõrkeotsing,diagnostika</string>
     <string name="doc_keywords_desktop">desktop,linux,macos,windows,serial</string>
     <string name="doc_keywords_discovery">avastamine,topoloogia,võrk,skaneerimine,naaber</string>
-    <string name="doc_keywords_firmware">püsivara,värskendus,ota,välkmälu,versioon,taastamine</string>
+    <string name="doc_keywords_firmware">püsivara,värskendus,ota,püsivarauuendus,versioon,taastamine</string>
     <string name="doc_keywords_help">abi,dokumentatsioon,dokumendid,chirpy,assistent,otsing,võrguühenduseta</string>
     <string name="doc_keywords_map">kaart,teekonnapunkt,gps,asukoht,marker</string>
     <string name="doc_keywords_measurement">vormindaja,mõõdik,arv,lokaat,temperatuur,teisendus,api</string>
-    <string name="doc_keywords_messages">sõnum,kanal,krüpteerimine,otseülekanne,kiirvestlus</string>
+    <string name="doc_keywords_messages">sõnum,kanal,krüpteerimine,otseülekanne,levitamine,kiirvestlus</string>
     <string name="doc_keywords_mqtt">mqtt,maakler,internet,sild,üleslink,allalink</string>
     <string name="doc_keywords_node_metrics">mõõdikud,telemeetria,signaal,snr,rssi,aku,traceroute</string>
     <string name="doc_keywords_nodes">sõlm,võrk,loend,roll,olek,lemmik,filter</string>
     <string name="doc_keywords_onboarding">seadistamine,tere tulemast,õigused,esimene käivitamine</string>
-    <string name="doc_keywords_settings_module">moodul,jadaport,telemeetria,konserveeritud,edasisaatmine,administreerimine</string>
+    <string name="doc_keywords_settings_module">moodul,jadaühendus,telemeetria,konserveeritud,edasisaatmine,administreerimine</string>
     <string name="doc_keywords_settings_radio">seaded,raadio,lora,piirkond,modem,seade,toide,turvalisus</string>
     <string name="doc_keywords_signal_meter">signaal,rssi,snr,baarid,kvaliteet,lora,müra,mõõtur</string>
     <string name="doc_keywords_tak">tak,atak,kursorsihtmärgil,meeskonnateadlikkus</string>
@@ -489,6 +508,7 @@
     <string name="doc_title_android_auto">Android auto</string>
     <string name="doc_title_app_functions">Rakenduse funktsioonid</string>
     <string name="doc_title_connections">Ühendus</string>
+    <string name="doc_title_debug_logs">Arendaja logid</string>
     <string name="doc_title_desktop">Töölauarakendus</string>
     <string name="doc_title_discovery">Avastamine</string>
     <string name="doc_title_firmware">Püsivara värskendused</string>
@@ -550,12 +570,9 @@
     <string name="expand_chart">Laienda diagrammi</string>
     <string name="expanded">Laiendatud</string>
     <string name="expires">Aegub</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Salvesta sätted</string>
     <string name="export_data_csv">Ekspordi kõik paketid</string>
     <string name="export_gpx">Salvesta GPX</string>
-    <string name="export_keys">Salvesta võtmed</string>
-    <string name="export_keys_confirmation">Ekspordib avalikud- ja privaatvõtmed faili. Palun hoidke kuskil turvalises kohas.</string>
     <string name="export_tak_data_package">Salvesta TAK andmepakett</string>
     <string name="external_notification">Välised teated</string>
     <string name="external_notification_config">Välisete teadete sätted</string>
@@ -587,13 +604,25 @@
     <!-- FIRMWARE -->
     <string name="firmware">Püsivara</string>
     <string name="firmware_edition">Püsivara versioon</string>
+    <string name="firmware_event_ended_banner">%1$s on lõppenud. Tavapäraste funktsioonide taastamiseks naaske standardse Meshtastic püsivara juurde.</string>
+    <string name="firmware_event_ended_button">Värskenda püsivara</string>
     <string name="firmware_old">Raadio püsivara on selle rakenduse kasutamiseks liiga vana. Lisateabe saamiseks vaata meie <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">püsivara paigaldusjuhendit</a>.</string>
+    <string name="firmware_recovery_banner">Lõpeta värskendamine: %1$s</string>
+    <string name="firmware_recovery_ble_failed">Sinihamba ​​kaudu värskendust ei õnnestunud lõpule viia. Selle seadme alglaadur ei suuda katkenud värskendust õhu kaudu usaldusväärselt lõpule viia. Ühenda see USB kaudu arvutiga ja püsivarauuenda see uuesti tootja jadapordi DFU-tööriista (näiteks adafruit-nrfutil) abil, et seade taastada.</string>
+    <string name="firmware_recovery_button">Jätka püsivara värskendamist</string>
+    <string name="firmware_recovery_dismiss">Keela püsivara taastamine</string>
+    <string name="firmware_recovery_explanation">See seade on püsivara värskenduse tõttu alglaaduri režiimis, mis ei ole lõppenud. Hoidke seda läheduses ja see püsivarauuendatakse uuesti värskenduse lõpuleviimiseks.</string>
     <string name="firmware_too_old">Püsivara värskendus on vajalik.</string>
     <string name="firmware_update_almost_there">Kohe lõpetan...</string>
     <string name="firmware_update_alpha">Alfa</string>
+    <string name="firmware_update_archive_missing_target">Püsivara %2$s (%3$s) jaoks, ei leitud \"%1$s\".</string>
     <string name="firmware_update_battery_low">Aku liiga tühi (%1$d%). Palun lae seade enne uuendamist.</string>
     <string name="firmware_update_checking">Otsin uuendusi...</string>
+    <string name="firmware_update_confirm_file_button">Alusta püsivarauuendust</string>
+    <string name="firmware_update_confirm_file_message">Enne püsivarauuendust vaata valitud failinimi kogu pikkuses üle. Uuendus algab peale sinu kinnitust.</string>
+    <string name="firmware_update_confirm_file_title">Kinnita püsivara fail</string>
     <string name="firmware_update_connecting_attempt">Seadmega ühenduse loomine (katse %1$d/%2$d)...</string>
+    <string name="firmware_update_context_changed">Seadme ühendus muutus kinnitamise ajal. Palun vali püsivara fail uuesti.</string>
     <string name="firmware_update_copying">Löö patsu! Oota veidi, püsivara laetakse...</string>
     <string name="firmware_update_currently_installed">Praegu paigaldatud: %1$s</string>
     <string name="firmware_update_device">Seade: %1$s</string>
@@ -609,9 +638,11 @@
     <string name="firmware_update_error">Viga: %1$s</string>
     <string name="firmware_update_extracting">Püsivara lahtipakkimine...</string>
     <string name="firmware_update_failed">Värskendus ebaõnnestus</string>
+    <string name="firmware_update_filename_unavailable">Valitud failinime lugemine ebaõnnestus. Vali kohalik püsivara fail nähtava failinimega.</string>
     <string name="firmware_update_flashing">Seadme värskendamine, palun oota...</string>
     <string name="firmware_update_hang_tight">Pea vastu, me töötame selle kallal...</string>
     <string name="firmware_update_hash_rejected">Püsivara räsi tagasi lükatud. Seade võib vajada räsi kontrollimist või alglaaduri värskendamist.</string>
+    <string name="firmware_update_invalid_local_file_detail">Valitud fail \"%1$s\" ei vasta failile %2$s (%3$s). Vali selle sihtmärgi jaoks püsivara fail.</string>
     <string name="firmware_update_keep_device_close">Hoia seade telefoni lähedal.</string>
     <string name="firmware_update_latest">Uuenda: %1$s' le</string>
     <string name="firmware_update_local_file">Lokaalne</string>
@@ -619,18 +650,24 @@
     <string name="firmware_update_method_detail">Uuenda %1$s' abil</string>
     <string name="firmware_update_method_usb">USB failiedastus</string>
     <string name="firmware_update_method_wifi">Üle WiFi</string>
+    <string name="firmware_update_missing_target">Selle seadme püsivara teave pole saadaval.</string>
     <string name="firmware_update_no_device">Ühtegi seadet pole ühendatud</string>
     <string name="firmware_update_node_info_missing">Sõlmel puudub kasutajateave.</string>
     <string name="firmware_update_not_found_in_release">Selles versioonis ei leitud püsivara %1$s'le.</string>
     <string name="firmware_update_ota_failed">Üle-õhu värskendus ebaõnnestus: %1$s</string>
+    <string name="firmware_update_ota_unsupported_reason">Selle seadme OTA laadur lükkas tagasi taotletud värskendusmeetodi: %1$s</string>
     <string name="firmware_update_rak4631_bootloader_hint">RAK WisBlock RAK4631 puhul kasuta tootja jadapordi DFU-tööriista (näiteks adafruit-nrfutil dfu jadapordi oma koos alglaaduri .zip-failiga). Ainult .uf2-faili kopeerimine ei värskenda alglaadurit.</string>
     <string name="firmware_update_rebooting">Taaskäivitamine DFU reziimi...</string>
     <string name="firmware_update_release_notes">Väljalaske märkmed</string>
+    <string name="firmware_update_requires_bin">%1$s nõuab sihtmärgile vastavat .bin faili.</string>
+    <string name="firmware_update_requires_ota_zip">%1$s nõuab sihtmärgile vastavat OTA .zip faili.</string>
+    <string name="firmware_update_requires_uf2">%1$s nõuab sihtmärgile vastavat .uf2 faili.</string>
     <string name="firmware_update_retrieval_failed">Püsivara faili ei õnnestunud hankida.</string>
     <string name="firmware_update_retry">Proovi uuesti</string>
     <string name="firmware_update_save_dfu_file">Palun salvesta .uf2-fail oma seadme DFU-kettale.</string>
+    <string name="firmware_update_searching_device">Otsin võrgust OTA seadet...</string>
     <string name="firmware_update_select_file">Vali kohalik fail</string>
-    <string name="firmware_update_slow_bootloader_hint">Seadme alglaaduri värskendused on aeglased. OTAFIX alglaaduri flash võimaldab palju kiiremaid BLE värskendusi.</string>
+    <string name="firmware_update_slow_bootloader_hint">Seadme alglaaduri värskendused on aeglased. OTAFIX alglaaduri püsivarauuendus võimaldab palju kiiremaid BLE värskendusi.</string>
     <string name="firmware_update_source_local">Allikas: kohalik fail</string>
     <string name="firmware_update_stable">Stabiilne</string>
     <string name="firmware_update_starting_dfu">DFU käivitamine...</string>
@@ -643,6 +680,7 @@
     <string name="firmware_update_unknown_hardware">Tundmatu riistvaramudel: %1$d</string>
     <string name="firmware_update_unknown_release">Tundmatu väljalase</string>
     <string name="firmware_update_unsupported_transport">Selle seadme püsivara värskendus ei toetata üle selle ühenduse. Värskendamiseks loo ühendus muul viisil (nt sinihamba ​​kaudu).</string>
+    <string name="firmware_update_unsupported_update_method">See värskendusmeetod ei toeta kohalikke püsivara faile.</string>
     <string name="firmware_update_uploading">Laen püsivara...</string>
     <string name="firmware_update_usb_bootloader_warning">%1$s on tavaliselt varustatud alglaaduriga, mis ei toeta OTA värskendusi. Enne OTA värskendamist pead võib-olla USB kaudu OTA-toega alglaaduri käivitama.</string>
     <string name="firmware_update_usb_failed">USB-värskendus ebaõnnestus</string>
@@ -658,6 +696,7 @@
     <string name="fixed_position">Määratud asukoht</string>
     <string name="flip_screen">Keera ekraani</string>
     <string name="for_more_information_see_our_privacy_policy">Lisateabe saamiseks vaata privaatsuspoliitikat.</string>
+    <!-- FORMAT -->
     <string name="free_memory">Vaba mälumaht</string>
     <string name="free_memory_description">Saadaolev süsteemimälu baitides</string>
     <string name="freq">Sagedus</string>
@@ -670,6 +709,25 @@
     <string name="generate_input_event_on_press">Sisendsündmus Vajuta pordis</string>
     <string name="generate_qr_code">Genereeri QR kood</string>
     <!-- GEOFENCE -->
+    <string name="geofence">Geopiire</string>
+    <string name="geofence_alerts_opt_in">Teavita mind ületamisest</string>
+    <string name="geofence_alerts_opt_in_desc">Saate märguande, kui sõlmed sellesse geopiirdesse sisenevad või sealt lahkuvad</string>
+    <string name="geofence_box_author_confirm">Kinnita ala</string>
+    <string name="geofence_box_author_hint">Ala määratlemiseks puuduta kahte nurka</string>
+    <string name="geofence_box_author_hint_viewport">Liiguta kaarti, et ala raamida, seejärel puuduta valikut „Kinnita ala”</string>
+    <string name="geofence_box_use_view">Kasuta praegust vaadet</string>
+    <string name="geofence_edit_area">Muuda ala</string>
+    <string name="geofence_entered_body">%1$s sisestatud %2$s</string>
+    <string name="geofence_entered_title">Sisestatud %1$s</string>
+    <string name="geofence_favorites_only">Ainult lemmikud</string>
+    <string name="geofence_left_body">%1$s lahkutud %2$s</string>
+    <string name="geofence_left_title">Lahkutud %1$s</string>
+    <string name="geofence_notify_on_enter">Teavita sisenemisel</string>
+    <string name="geofence_notify_on_exit">Teavita väljumisel</string>
+    <string name="geofence_off">Väljas</string>
+    <string name="geofence_radius">Geopiirde raadius</string>
+    <string name="geofence_remove_area">Eemalda ala</string>
+    <string name="geofence_set_area">Määra piirkond kaardil</string>
     <string name="get_started">Algusesse</string>
     <string name="good">Hea</string>
     <!-- GPIO -->
@@ -694,6 +752,8 @@
     <string name="hide_password">Peida parool</string>
     <string name="history_return_max">Ajalookirjete maksimaalne arv</string>
     <string name="history_return_window">Ajalookirjete aken</string>
+    <string name="hop_histogram_empty">Selles akna sõlmedest pole ühtegi kuulda</string>
+    <string name="hop_histogram_title">Sõlme hüppe kohta</string>
     <string name="hop_limit">Hüpete arv</string>
     <string name="hops_away">Hüppe kaugusel</string>
     <string name="host">Host</string>
@@ -722,6 +782,7 @@
     <string name="incoming_messages">Sissetulevad sõnumid</string>
     <string name="indoor_air_quality_iaq">Siseõhu kvaliteet (IAQ)</string>
     <string name="info">Informatsioon</string>
+    <string name="input_channel_url">Sisesta jagatud kanalite URL</string>
     <string name="input_shared_contact_url">Sisesta jagatud kontakti URL</string>
     <string name="installed_firmware_version">Paigaldatud</string>
     <string name="internal">Sisemine</string>
@@ -734,6 +795,12 @@
     <string name="ip_port">Port:</string>
     <string name="ipv4_mode">IPv4 režiim</string>
     <string name="json_output_enabled">JSON väljund lubatud</string>
+    <!-- KEY -->
+    <string name="key_backup_deleted">Taastevõtmed kustutaud</string>
+    <string name="key_backup_not_found">Taastevõtmeid selles seadmes ei leitud</string>
+    <string name="key_backup_restore_failed">Võtmete taastamine varundusest ebaõnnestus</string>
+    <string name="key_backup_restored">Võtmed taastatud - salvestan seadmesse</string>
+    <string name="key_backup_saved">Võtmed on turvaliselt varundatud</string>
     <string name="key_verification_final_title">Võtme kontrollimine on lõpule viidud</string>
     <string name="key_verification_request_title">Võtme kinnitamise taotlus</string>
     <string name="key_verification_title">Võtme kontrollimine</string>
@@ -801,7 +868,7 @@
     <string name="lockdown_disable_message">Lukustuse väljalülitamiseks sisesta salasõna. Seade dekrüpteerib oma salvestusruumi ja taaskäivitub.</string>
     <string name="lockdown_enable">Luba lukustus</string>
     <string name="lockdown_enable_ack">Saan aru</string>
-    <string name="lockdown_enable_warning">Tähelepanu: lukustuse lubamine lukustab silumispordi (SWD) toetatud riistvara. Lukustuse saab igal ajal salasõnaga välja lülitada ja seadme täielik kustutamine taastab vajadusel kõik.</string>
+    <string name="lockdown_enable_warning">Tähelepanu: lukustuse lubamine lukustab arendajapordi (SWD) toetatud riistvara. Lukustuse saab igal ajal salasõnaga välja lülitada ja seadme täielik kustutamine taastab vajadusel kõik.</string>
     <string name="lockdown_enter_passphrase">Sisesta salasõna</string>
     <string name="lockdown_hide_passphrase">Peida</string>
     <string name="lockdown_hours_until_expiry">Tunde kuni kehtivusaja lõpuni</string>
@@ -885,6 +952,44 @@
     <string name="match_all">Sobib mõni | kõik</string>
     <string name="match_any">Sobib mõni | kõik</string>
     <string name="max">Maksimaalselt</string>
+    <!-- MESH -->
+    <string name="mesh_beacon">Kärgvõrgu majakas</string>
+    <string name="mesh_beacon_broadcast">Levita majakat</string>
+    <string name="mesh_beacon_broadcast_summary">Reklaami seda kärgvõrku perioodiliselt lähedalasuvatele sõlmedele</string>
+    <string name="mesh_beacon_channels_title">Majaka kanal</string>
+    <string name="mesh_beacon_interval">Levitamise intervall (sekundit)</string>
+    <string name="mesh_beacon_interval_error">Miinimum %1$d sekundit</string>
+    <string name="mesh_beacon_invitations_title">Kärgvõrgu kutsed</string>
+    <string name="mesh_beacon_listen">Kuula majakaid</string>
+    <string name="mesh_beacon_listen_summary">Lähedalasuvate kärgvõrkude reklaamitud kutsete jäädvustamine</string>
+    <string name="mesh_beacon_message">Majaka sõnum</string>
+    <string name="mesh_beacon_message_error">Maksimum %1$d baiti</string>
+    <string name="mesh_beacon_notification_body">Lähedal asuv kärgvõrk kutsus liituma</string>
+    <string name="mesh_beacon_notification_title">Kärgvõrgu kutsed</string>
+    <string name="mesh_beacon_offer_add">Lisa kanal</string>
+    <string name="mesh_beacon_offer_channel">Kanal: %1$s</string>
+    <string name="mesh_beacon_offer_channel_key">Pakutud kanali võti (base64)</string>
+    <string name="mesh_beacon_offer_channel_name">Pakutud kanali nimi</string>
+    <string name="mesh_beacon_offer_discover">Avasta</string>
+    <string name="mesh_beacon_offer_dismiss">Loobu</string>
+    <string name="mesh_beacon_offer_from_unknown">Tundmatust sõlmest</string>
+    <string name="mesh_beacon_offer_join">Liitu</string>
+    <string name="mesh_beacon_offer_preset">Eelseadistus: %1$s</string>
+    <string name="mesh_beacon_offer_preset_setting">Pakutud eelseadistus</string>
+    <string name="mesh_beacon_offer_region">Regioon: %1$s</string>
+    <string name="mesh_beacon_offer_region_setting">Pakutud regioon</string>
+    <string name="mesh_beacon_offer_signal">Signaal: %1$s / %2$s</string>
+    <string name="mesh_beacon_offer_title">Kärgvõrgu kutse</string>
+    <string name="mesh_beacon_on_preset">Edasta eelseadistus</string>
+    <string name="mesh_beacon_on_region">Edasta regioon</string>
+    <string name="mesh_beacon_preset_indicator">Reklaamitud lähedal asuvast majakast</string>
+    <string name="mesh_beacon_preset_none">Puudub</string>
+    <string name="mesh_beacon_send_as_node">Levita sõlme numbrina (0 = see sõlm)</string>
+    <string name="mesh_beacon_target">Sihtmärk %1$d</string>
+    <string name="mesh_beacon_target_add">Lisa sihtmärk</string>
+    <string name="mesh_beacon_target_channel_index">Kanali loend</string>
+    <string name="mesh_beacon_target_remove">Eemalda sihtmärk</string>
+    <string name="mesh_beacon_targets">Levita sihtmärke</string>
     <string name="mesh_map_location">Meshtastic kaardi asukoht</string>
     <string name="mesh_map_location_description">Lubab telefoni asukoha kuvamine sinisena kärgvõrgu kaardil.</string>
     <!-- MESHTASTIC -->
@@ -894,21 +999,24 @@
     <string name="meshtastic_broadcast_notifications">Ringhäälingusõnumi teated</string>
     <string name="meshtastic_low_battery_notifications">Madala akupinge hoiatus</string>
     <string name="meshtastic_low_battery_temporary_remote_notifications">Madala akupinge teated (lemmik sõlmed)</string>
-    <string name="meshtastic_messages_notifications">Otsesõnumi teated</string>
+    <string name="meshtastic_mesh_beacon_notifications">Kärgvõrgu kutse märguanne</string>
+    <string name="meshtastic_messages_notifications">Otsesõnumi märguanded</string>
     <string name="meshtastic_new_nodes_notifications">Uue sõlme teade</string>
-    <string name="meshtastic_service_notifications">Teenuse teavitused</string>
+    <string name="meshtastic_service_notifications">Teenuse märguanded</string>
     <string name="meshtastic_waypoints_notifications">Teekonnapunktide teavitused</string>
     <!-- MESSAGE -->
     <string name="message">Sõnum</string>
     <string name="message_delivery_status">Sõnumi edastamise olek</string>
     <string name="message_device_managed">Seda raadio on hallatud ja muudab ainult kaughaldur.</string>
     <string name="message_input_label">Sõnum</string>
+    <string name="message_routing_error_no_channel">Kanalit pole valitud</string>
     <string name="message_status_delivered">Kärgvõrku kohale jõudnud</string>
-    <string name="message_status_enroute">Ootab kinnitamist</string>
+    <string name="message_status_enroute">Saadan...</string>
     <string name="message_status_queued">Saatmise järjekorras</string>
     <string name="message_status_sfpp_confirmed">Kinnitatud SF++ ahel</string>
     <string name="message_status_sfpp_routing">Marsruutimine SF++ ahela kaudu…</string>
     <string name="message_status_unknown">Tundmatu</string>
+    <string name="message_translated_label">Tõlgitud</string>
     <string name="messages">Sõnum</string>
     <string name="micrograms_per_cubic_meter">µg/m³</string>
     <string name="min">Min</string>
@@ -1300,6 +1408,8 @@
     <!-- SCAN -->
     <string name="scan">Otsi</string>
     <string name="scan_bluetooth_devices">Otsi sinihamba seadmeid</string>
+    <string name="scan_channels_nfc">Skanni jagatud kanaleid NFC abil</string>
+    <string name="scan_channels_qr">Skanni jagatud kanalite QR-kood</string>
     <string name="scan_network_devices">Võrguseadmete otsimine</string>
     <string name="scan_nfc">NFC lugemine</string>
     <string name="scan_nfc_text">Lugemiseks vii seade NFC-sildi lähedale.</string>
@@ -1334,6 +1444,7 @@
     <string name="security_signed_message_info">Tõendatud saatja võtmega.</string>
     <string name="security_signed_node">Registreeritud sõlm</string>
     <string name="security_signed_node_desc">Tõendatud automaatselt</string>
+    <string name="security_signed_node_help">See sõlm allkirjastab oma leviedastused XEdDSA-ga. Raadio kontrollib sealt nähtavaid leviedastusi oma identiteedivõtme abil.</string>
     <string name="security_signed_verified">Registreeritud - tõendatud</string>
     <string name="select">Vali</string>
     <string name="select_all">Vali kõik</string>
@@ -1383,6 +1494,8 @@
     <string name="shutdown_warning">⚠️ See LÜLITAB sõlme välja. Uuesti sisselülitamiseks on vaja füüsilist sekkumist.</string>
     <string name="signal">Levi</string>
     <string name="signal_quality">Levi Kvaliteet</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Ekraan</string>
     <string name="skip">Jäta vahele</string>
     <string name="slot">Pesa</string>
     <string name="smart_position">Nutikas asukoht</string>
@@ -1427,7 +1540,7 @@
     <string name="tak_server_export_data_package_desc">Genereeri selle serveriga ühendumiseks ATAK/iTAK-il .zip fail</string>
     <string name="tak_server_loading">…</string>
     <string name="tak_server_section">Server</string>
-    <string name="tak_server_test_card_title">TAK kärgvõrgu test (silu)</string>
+    <string name="tak_server_test_card_title">TAK kärgvõrgu test (arendaja)</string>
     <string name="tak_server_test_idle">Saada kõik %1$d testkinnitust kärgvõrku</string>
     <string name="tak_server_test_result_bytes">%1$dB ✓</string>
     <string name="tak_server_test_result_unknown_error">✗</string>
@@ -1504,12 +1617,21 @@
     <string name="traffic_management_rate_limit_window">Kiiruse piirangu aken (sekundites)</string>
     <string name="traffic_management_router_preserve_hops">Säilita ruuteri hüpped</string>
     <string name="traffic_management_unknown_packet_threshold">Tundmatu pakettide lävi</string>
+    <string name="translate">Tõlgi</string>
+    <!-- TRANSLATION -->
+    <string name="translation_download_message">Sõnumite tõlkimiseks on vaja ühekordset keelemudeli allalaadimist (umbes %1$d MB).</string>
+    <string name="translation_download_title">Kas allalaadida tõlkemudel?</string>
+    <string name="translation_downloading">Tõlkemudeli allalaadimine…</string>
+    <string name="translation_failed">Sõnumit ei õnnestunud tõlkida</string>
+    <string name="translation_model_download_failed">Tõlkemudeli allalaadimine ebaõnnestus</string>
     <string name="transmit_over_lora">Saada LoRa kaudu</string>
     <!-- TRANSPORT -->
+    <string name="transport_api">API</string>
     <string name="transport_ble">BLE</string>
     <string name="transport_lora">LoRa</string>
     <string name="transport_mqtt">MQTT</string>
     <string name="transport_tcp">TCP</string>
+    <string name="transport_udp">UDP</string>
     <string name="transport_usb">USB</string>
     <string name="triple_click_adhoc_ping">Kolmekordne klõps Ad Hoc Ping</string>
     <string name="twenty_four_hours">24T</string>
@@ -1572,6 +1694,7 @@
     <string name="wait_for_bluetooth_duration_seconds">Oota Bluetoothi ​​kestust</string>
     <string name="wake_on_tap_or_motion">Ärata puudutusega või liigutusega</string>
     <string name="warning">Hoiatus</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Eemalda teekonnapunkt?</string>
     <string name="waypoint_edit">Muuda teekonnapunkti</string>
     <string name="waypoint_new">Uus teekonnapunkti</string>
@@ -1624,5 +1747,9 @@
     <string name="wind_gust">Tuuleiil</string>
     <string name="wind_lull">Tuulevaikus</string>
     <string name="wind_speed">Tuule kiirus</string>
+    <string name="write_nfc">Kirjuta NFC sildile</string>
+    <string name="write_nfc_failed">Sildile ei õnnestunud kirjutada. Kasuta kirjutatavat, tühja NFC silti ja hoia seda paigal.</string>
+    <string name="write_nfc_success">Kirjutatud sildile</string>
+    <string name="write_nfc_text">Hoia kirjutatavat NFC silti telefoni tagakülje vastas.</string>
     <string name="you">Sina</string>
 </resources>

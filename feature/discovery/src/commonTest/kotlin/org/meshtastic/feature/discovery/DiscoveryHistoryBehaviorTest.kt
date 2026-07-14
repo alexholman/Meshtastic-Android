@@ -185,6 +185,8 @@ private class HistoryTestDao : DiscoveryDao {
 
     override fun getAllSessions(): Flow<List<DiscoverySessionEntity>> = sessionsFlow
 
+    override suspend fun getAllSessionsSnapshot(): List<DiscoverySessionEntity> = sessions.values.toList()
+
     override suspend fun getSession(sessionId: Long) = sessions[sessionId]
 
     override fun getSessionFlow(sessionId: Long): Flow<DiscoverySessionEntity?> = MutableStateFlow(sessions[sessionId])
@@ -258,6 +260,10 @@ private class HistoryTestDao : DiscoveryDao {
             }
         }
     }
+
+    override suspend fun getInterruptedSession(deviceAddress: String): DiscoverySessionEntity? = sessions.values
+        .filter { it.deviceAddress == deviceAddress && it.completionStatus in setOf("in_progress", "interrupted") }
+        .maxByOrNull { it.timestamp }
 }
 
 // endregion

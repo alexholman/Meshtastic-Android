@@ -19,9 +19,11 @@ package org.meshtastic.feature.map
 import org.koin.core.annotation.KoinViewModel
 import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.NotificationPrefs
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
+import org.meshtastic.core.repository.UiPrefs
 
 @KoinViewModel
 class SharedMapViewModel(
@@ -30,4 +32,14 @@ class SharedMapViewModel(
     packetRepository: PacketRepository,
     radioController: RadioController,
     radioConfigRepository: RadioConfigRepository,
-) : BaseMapViewModel(mapPrefs, nodeRepository, packetRepository, radioController, radioConfigRepository)
+    notificationPrefs: NotificationPrefs,
+    uiPrefs: UiPrefs,
+) : BaseMapViewModel(
+    mapPrefs,
+    nodeRepository,
+    packetRepository,
+    radioController,
+    radioConfigRepository,
+    notificationPrefs,
+    uiPrefs,
+)

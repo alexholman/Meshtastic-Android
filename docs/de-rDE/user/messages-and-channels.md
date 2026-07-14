@@ -2,7 +2,7 @@
 title: Messages & Channels
 parent: User Guide
 nav_order: 3
-last_updated: 2026-06-25
+last_updated: 2026-07-11
 description: Send and receive messages, manage channels, configure encryption, search conversations, and use quick chat, reactions, and message actions.
 aliases:
   - channels
@@ -27,12 +27,12 @@ Every Meshtastic device comes with a default **LongFast** channel. This is an un
 
 Channels support multiple encryption levels:
 
-| Icon | Security Level                       | Beschreibung                                                                                                                           |
-| ---- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔒   | PSK (256-bit AES) | Fully encrypted with a strong pre-shared key. Only nodes with the matching key can read messages.      |
-| 🔐   | PSK (128-bit AES) | Encrypted with a shorter key. Secure for most uses but 256-bit is preferred for sensitive data.        |
-| 🔓   | Default / Open                       | Uses the well-known default key. **Any Meshtastic device** on the same preset can read these messages. |
-| ⚠️   | Insecure + Position                  | Open channel that also broadcasts your GPS position. Use with caution in public meshes.                |
+| Symbol | Security Level                       | Beschreibung                                                                                                                           |
+| ------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔒     | PSK (256-bit AES) | Fully encrypted with a strong pre-shared key. Only nodes with the matching key can read messages.      |
+| 🔐     | PSK (128-bit AES) | Encrypted with a shorter key. Secure for most uses but 256-bit is preferred for sensitive data.        |
+| 🔓     | Default / Open                       | Uses the well-known default key. **Any Meshtastic device** on the same preset can read these messages. |
+| ⚠️     | Insecure + Position                  | Open channel that also broadcasts your GPS position. Use with caution in public meshes.                |
 
 > 🔒 **Security Tip:** Always configure a unique PSK for private communications. The default channel is intentionally open so new users can discover the mesh — but you should create a separate encrypted channel for anything sensitive.
 
@@ -57,15 +57,17 @@ Direct messages (DMs) are point-to-point encrypted communications between two sp
 
 ### Message States
 
-| State                             | Icon | Meaning                                                                                                           |
-| --------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------- |
-| Queued                            | ⏳    | Message waiting to be sent                                                                                        |
-| En route                          | ✓    | Delivered to the radio, awaiting acknowledgment                                                                   |
-| Zugestellt                        | ✓✓   | Acknowledgment received from recipient                                                                            |
-| Received                          | ✓    | Message received from the mesh (incoming)                                                      |
-| S&F Routing   | 🔗   | Store & Forward: message being routed through an S&F node |
-| S&F Confirmed | 🔗   | Store & Forward: delivery confirmed via S&F node          |
-| Fehler                            | ✗    | Delivery failed after retries                                                                                     |
+A status label appears under **your own** outgoing messages only (incoming messages from others show no status label):
+
+| Status                                      | Meaning                                                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Sending…                                    | Queued or already handed to the radio, not yet resolved either way (queued and en-route both show this same text) |
+| Delivered to recipient                      | The strongest confirmation for a direct message — an acknowledgment came back                                                        |
+| Versand ins Netz                            | For a channel broadcast, the message reached the mesh (broadcasts have no per-recipient ack)                      |
+| Relayed, not confirmed by recipient         | For a direct message, shown in a warning color — the message was relayed but no acknowledgment has come back yet                     |
+| Routen über den SF++ Weg.   | Being routed/buffered by the Store & Forward Plus Plus chain                                                     |
+| Bestätigt auf dem SF++ Weg. | Confirmed delivered via the SF++ chain                                                                                               |
+| Fehler                                      | Delivery failed — tap the status for the specific reason (see Delivery Errors below)                              |
 
 ### Delivery Errors
 
@@ -99,7 +101,7 @@ Pre-configured messages for rapid communication:
 
 ![Quick chat option](../../assets/screenshots/messages_quick_chat.png)
 
-Each quick chat entry has a short **Name** (the button label), the **Message** it inserts, and an **Instantly send** toggle — when enabled, tapping the button sends the message immediately instead of placing it in the input field for editing:
+Jeder Quick-Chat-Eintrag besteht aus einem kurzen **Namen** (der Schaltflächenbeschriftung), der einzufügenden **Nachricht** und einer Option zum **Sofortigen Senden**: Ist diese aktiviert, wird die Nachricht beim Tippen auf die Schaltfläche sofort versendet, anstatt zur Bearbeitung in das Eingabefeld eingefügt zu werden.
 
 ![New quick chat dialog with name, message, and instantly-send toggle](../../assets/screenshots/messages_edit_quick_chat.png)
 
@@ -116,11 +118,31 @@ You can search the full history of any conversation directly from the chat scree
 
 ![Message search bar with result counter and previous/next arrows](../../assets/screenshots/messages_search_bar.png)
 
-> 💡 **Tip:** Search is full-text and stays within the conversation you opened it from — it doesn't search across other channels or contacts. Matching is fast even on long histories because messages are indexed locally.
+> 💡 **Tip:** Search is full-text and stays within the conversation you opened it from — it doesn't search across other channels or contacts. It matches against the messages already stored on your device, so it works fully offline.
 
 ### Message Bubbles
 
 Messages appear as chat bubbles — sent messages on the right, received messages on the left. Each bubble shows the sender, timestamp, and delivery status. Messages with replies include a quoted preview of the original message above the response.
+
+### Text Formatting
+
+Messages support lightweight inline **Markdown**. Received messages render the styling with the syntax characters removed:
+
+| Typ           | Syntax                         | Renders as           |
+| ------------- | ------------------------------ | -------------------- |
+| Bold          | `**bold**`                     | **bold**             |
+| Italic        | `*italic*`                     | _italic_             |
+| Strikethrough | `~~strike~~`                   | ~~strike~~           |
+| Inline code   | `` `code` ``                   | monospace `code`     |
+| Link          | `[label](https://example.com)` | a tappable **label** |
+
+When composing, focus the message field and type at least three characters to reveal a **formatting toolbar** below the input. Select text and tap a style to wrap it (tap again to remove it); with no selection, a style inserts an empty pair with the cursor between the markers. The link button opens a dialog to enter a URL. As you type, the draft styles live in the field while the underlying text keeps its Markdown characters.
+
+> 💡 **Tip:** Formatting is carried as literal characters on the mesh — the same bytes iOS sends. Clients that don't support Markdown (older apps, plain firmware clients) will show the raw `**`/`~~` characters. URLs, email addresses, and phone numbers are still auto-linked whether or not you use Markdown.
+
+### Mentions
+
+Type `@` while composing to mention a node — a picker suggests matching contacts as you type. In a received message, a mention appears as a highlighted chip showing the node's name; tap it to jump straight to that node's detail page.
 
 ### Reactions
 
@@ -143,6 +165,7 @@ Long-press any message to access:
 - **Copy** — copy message text to clipboard
 - **Reply** — quote the message in your response
 - **React** — add an emoji reaction
+- **Translate** — translate a received message into your device language and toggle between the original and translated text (Google Play build only; uses on-device translation)
 - **Delete** — remove a message you sent (local deletion)
 
 ### Message Priority

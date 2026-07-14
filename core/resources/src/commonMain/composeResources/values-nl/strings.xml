@@ -107,6 +107,7 @@
     <string name="delivery_confirmed">Aflevering bevestigd</string>
     <string name="desc_node_filter_clear">wis node filter</string>
     <string name="description">Beschrijving</string>
+    <!-- DESKTOP -->
     <string name="details">Details</string>
     <string name="detection_sensor">Detectie Sensor</string>
     <string name="detection_sensor_config">Bewegingssensor Configuratie</string>
@@ -146,7 +147,6 @@
     <string name="error_duty_cycle">Limiet van Duty Cycle bereikt. Kan nu geen berichten verzenden, probeer het later opnieuw.</string>
     <string name="ethernet_enabled">Ethernet ingeschakeld</string>
     <string name="exchange_position">Positie uitwisselen</string>
-    <!-- EXPORT -->
     <string name="export_configuration">Configuratie exporteren</string>
     <string name="external_notification">Externe Melding</string>
     <string name="factory_reset">Reset naar fabrieksinstellingen</string>
@@ -163,6 +163,7 @@
     <string name="firmware_update_failed">Bijwerken mislukt</string>
     <string name="fixed_pin">Vaste PIN</string>
     <string name="flip_screen">Scherm omdraaien</string>
+    <!-- FORMAT -->
     <string name="freq">Freq</string>
     <string name="friendly_name">Weergavenaam</string>
     <string name="gateway">Gateway</string>
@@ -200,6 +201,7 @@
     <string name="ip_port">Poort:</string>
     <string name="ipv4_mode">IPv4 modus</string>
     <string name="json_output_enabled">JSON uitvoer ingeschakeld</string>
+    <!-- KEY -->
     <!-- LABEL -->
     <string name="latitude">Breedtegraad</string>
     <string name="led_state">LED status</string>
@@ -237,6 +239,8 @@
     <string name="map_tile_download_estimate">Geschatte download tegels:</string>
     <string name="map_tile_source">Bron tegel</string>
     <string name="max">Maximum</string>
+    <!-- MESH -->
+    <string name="mesh_beacon_preset_none">Geen</string>
     <!-- MESHTASTIC -->
     <string name="meshtastic_alerts_notifications">Waarschuwingsmeldingen</string>
     <string name="meshtastic_low_battery_notifications">Batterij bijna leeg</string>
@@ -246,7 +250,6 @@
     <string name="message">Bericht</string>
     <string name="message_delivery_status">Bericht afleverstatus</string>
     <string name="message_input_label">Bericht</string>
-    <string name="message_status_enroute">Wachten op bevestiging</string>
     <string name="message_status_queued">In behandeling</string>
     <string name="messages">Berichten</string>
     <string name="minimum_broadcast_seconds">Minimale broadcast (seconden)</string>
@@ -423,6 +426,8 @@
     <string name="shutdown">Zet uit</string>
     <string name="signal">Signaal</string>
     <string name="signal_quality">Signaalkwaliteit</string>
+    <!-- SITE -->
+    <string name="site_planner_section_display">Weergave</string>
     <string name="slot">Slot</string>
     <string name="snr">SNR</string>
     <string name="snr_definition">Signal-to-Noise Ratio, een meeting die wordt gebruikt in de communicatie om het niveau van een gewenst signaal tegenover achtergrondlawaai te kwantificeren. In Meshtastische en andere draadloze systemen geeft een hoger SNR een zuiverder signaal aan dat de betrouwbaarheid en kwaliteit van de gegevensoverdracht kan verbeteren.</string>
@@ -452,6 +457,7 @@
     </plurals>
     <string name="traceroute_log">Traceroute</string>
     <!-- TRAFFIC -->
+    <!-- TRANSLATION -->
     <string name="transmit_over_lora">Zend over LoRa</string>
     <!-- TRANSPORT -->
     <string name="transport_lora">LoRa</string>
@@ -480,6 +486,7 @@
     <string name="username">Gebruikersnaam</string>
     <string name="via_mqtt">via MQTT</string>
     <string name="voltage">Spanning</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Waypoint verwijderen?</string>
     <string name="waypoint_edit">Wijzig waypoint</string>
     <string name="waypoint_new">Nieuw waypoint</string>

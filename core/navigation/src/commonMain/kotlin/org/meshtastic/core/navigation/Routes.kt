@@ -54,7 +54,7 @@ sealed interface ContactsRoute : Route {
 
 @Serializable
 sealed interface MapRoute : Route {
-    @Serializable data class Map(val waypointId: Int? = null) : MapRoute
+    @Serializable data class Map(val waypointId: Int? = null, val sitePlannerNodeNum: Int? = null) : MapRoute
 }
 
 @Serializable
@@ -162,6 +162,8 @@ sealed interface SettingsRoute : Route {
     @Serializable data object StatusMessage : SettingsRoute
 
     @Serializable data object TAK : SettingsRoute
+
+    @Serializable data object MeshBeacon : SettingsRoute
 
     // endregion
 
