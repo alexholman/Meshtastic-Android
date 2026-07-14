@@ -48,5 +48,8 @@ data class Notification(
 
         /** Advisory Mesh Beacon invitations from other meshes — low-importance, its own channel. */
         MeshBeacon,
+
+        /** Tracking-map reacquisition alerts: a tracked node reported a position after a long silence. */
+        Tracking,
     }
 }

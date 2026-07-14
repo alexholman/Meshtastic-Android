@@ -49,6 +49,7 @@ import org.meshtastic.feature.discovery.navigation.discoveryGraph
 import org.meshtastic.feature.docs.navigation.docsEntries
 import org.meshtastic.feature.firmware.navigation.firmwareGraph
 import org.meshtastic.feature.map.navigation.mapGraph
+import org.meshtastic.feature.map.tracking.navigation.trackingGraph
 import org.meshtastic.feature.messaging.navigation.contactsGraph
 import org.meshtastic.feature.node.navigation.nodesGraph
 import org.meshtastic.feature.settings.lockdown.LockdownDialog
@@ -73,21 +74,7 @@ fun MainScreen() {
     val scrollToTopEvents = viewModel.scrollToTopEventFlow
 
     AndroidAppVersionCheck(viewModel)
-
-    val lockdownState by viewModel.lockdownState.collectAsStateWithLifecycle()
-    LockdownDialog(
-        lockdownState = lockdownState,
-        onSubmit = { passphrase, boots, hours, sessionMinutes ->
-            viewModel.sendLockdownUnlock(passphrase, boots, hours, sessionMinutes * SECONDS_PER_MINUTE)
-        },
-        onDisconnect = { viewModel.setDeviceAddress("n") },
-    )
-    // Auto-disconnect when firmware acknowledges Lock Now
-    LaunchedEffect(lockdownState) {
-        if (lockdownState is LockdownState.LockNowAcknowledged) {
-            viewModel.setDeviceAddress("n")
-        }
-    }
+    LockdownHandler(viewModel)
 
     MeshtasticAppShell(multiBackstack = multiBackstack, uiViewModel = viewModel, hostModifier = Modifier) {
         MeshtasticNavigationSuite(
@@ -107,6 +94,7 @@ fun MainScreen() {
                         },
                     )
                     mapGraph(backStack)
+                    trackingGraph(backStack)
                     channelsGraph(backStack)
                     connectionsGraph(backStack)
                     discoveryGraph(backStack)
@@ -126,6 +114,25 @@ fun MainScreen() {
 
 /** True when no device address is persisted, or the address is the "none" sentinel (`"n"`). */
 private fun String?.isNullOrSelectedNone(): Boolean = isNullOrBlank() || this == "n"
+
+/** Lockdown unlock dialog plus auto-disconnect once firmware acknowledges Lock Now. */
+@Composable
+private fun LockdownHandler(viewModel: UIViewModel) {
+    val lockdownState by viewModel.lockdownState.collectAsStateWithLifecycle()
+    LockdownDialog(
+        lockdownState = lockdownState,
+        onSubmit = { passphrase, boots, hours, sessionMinutes ->
+            viewModel.sendLockdownUnlock(passphrase, boots, hours, sessionMinutes * SECONDS_PER_MINUTE)
+        },
+        onDisconnect = { viewModel.setDeviceAddress("n") },
+    )
+    // Auto-disconnect when firmware acknowledges Lock Now
+    LaunchedEffect(lockdownState) {
+        if (lockdownState is LockdownState.LockNowAcknowledged) {
+            viewModel.setDeviceAddress("n")
+        }
+    }
+}
 
 @Composable
 @Suppress("LongMethod", "CyclomaticComplexMethod")

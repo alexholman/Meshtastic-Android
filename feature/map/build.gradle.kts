@@ -36,6 +36,8 @@ kotlin {
             implementation(projects.core.resources)
             implementation(projects.core.ui)
             implementation(projects.core.di)
+            implementation(libs.xmlutil.core)
+            implementation(libs.xmlutil.serialization)
         }
     }
 }

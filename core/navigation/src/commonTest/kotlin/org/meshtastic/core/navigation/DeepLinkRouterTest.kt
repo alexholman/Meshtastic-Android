@@ -139,6 +139,15 @@ class DeepLinkRouterTest {
 
     // endregion
 
+    // region tracking
+
+    @Test
+    fun `tracking routes to the tracking map`() {
+        assertEquals(listOf(TrackingRoute.Tracking), route("/tracking"))
+    }
+
+    // endregion
+
     // region nodes
 
     @Test

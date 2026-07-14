@@ -92,6 +92,7 @@ import org.meshtastic.feature.intro.IntroViewModel
 import org.meshtastic.feature.map.MapScreen
 import org.meshtastic.feature.map.SharedMapViewModel
 import org.meshtastic.feature.map.node.NodeMapViewModel
+import org.meshtastic.feature.map.tracking.LocalTrackingMapProvider
 import org.meshtastic.feature.node.metrics.MetricsViewModel
 import org.meshtastic.feature.node.metrics.TracerouteMapScreen
 
@@ -251,6 +252,10 @@ class MainActivity : AppCompatActivity() {
                         navigateToNodeDetails = navigateToNodeDetails,
                         waypointId = waypointId,
                     )
+                },
+            LocalTrackingMapProvider provides
+                { state, modifier ->
+                    org.meshtastic.app.map.tracking.TrackingMap(state, modifier)
                 },
             content = content,
         )

@@ -24,6 +24,7 @@ import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.Route
 import org.meshtastic.core.navigation.SettingsRoute
 import org.meshtastic.core.navigation.TopLevelDestination
+import org.meshtastic.core.navigation.TrackingRoute
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -44,6 +45,7 @@ class DesktopTopLevelDestinationParityTest {
                 ContactsRoute.Contacts::class,
                 NodesRoute.Nodes::class,
                 MapRoute.Map::class,
+                TrackingRoute.Tracking::class,
                 SettingsRoute.Settings::class,
                 ConnectionsRoute.Connections::class,
             )

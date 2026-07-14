@@ -171,6 +171,7 @@ class LinuxNotificationSender(
                 Notification.Category.Alert -> "device.error"
                 Notification.Category.NodeEvent -> "network"
                 Notification.Category.MeshBeacon -> "network"
+                Notification.Category.Tracking -> "network"
                 Notification.Category.Service -> "device"
             }
         libnotify.notify_notification_set_category(ptr, category)

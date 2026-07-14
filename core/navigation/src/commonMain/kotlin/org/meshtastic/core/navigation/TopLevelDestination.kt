@@ -24,6 +24,7 @@ import org.meshtastic.core.resources.connect
 import org.meshtastic.core.resources.map
 import org.meshtastic.core.resources.messages
 import org.meshtastic.core.resources.nodes
+import org.meshtastic.core.resources.tracking
 
 /**
  * Shared top-level destinations for the application shell.
@@ -35,6 +36,7 @@ enum class TopLevelDestination(val label: StringResource, val route: Route) {
     Messages(Res.string.messages, ContactsRoute.Contacts),
     Nodes(Res.string.nodes, NodesRoute.Nodes),
     Map(Res.string.map, MapRoute.Map()),
+    Tracking(Res.string.tracking, TrackingRoute.Tracking),
     Settings(Res.string.bottom_nav_settings, SettingsRoute.Settings()),
     Connect(Res.string.connect, ConnectionsRoute.Connections()),
     ;
