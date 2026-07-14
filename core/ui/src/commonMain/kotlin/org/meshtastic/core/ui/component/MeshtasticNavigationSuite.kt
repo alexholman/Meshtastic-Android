@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -62,6 +63,16 @@ import org.meshtastic.core.resources.device_sleeping
 import org.meshtastic.core.resources.disconnected
 import org.meshtastic.core.ui.navigation.icon
 import org.meshtastic.core.ui.viewmodel.UIViewModel
+
+/**
+ * Whether the fork-specific "Tracking" top-level tab is shown in the navigation shell.
+ *
+ * Defaults to `false` so the shared KMP shell hides the tab everywhere; the fdroid Android flavor (the only flavor with
+ * a real tracking map) opts in by providing `true` via `AppCompositionLocals`. The google flavor and desktop leave the
+ * default, so the tab stays hidden there. The tracking route itself remains registered on all platforms.
+ */
+@Suppress("CompositionLocalAllowlist")
+val LocalTrackingTabEnabled = staticCompositionLocalOf { false }
 
 /**
  * Shared adaptive navigation shell using [NavigationSuiteScaffold].
@@ -89,11 +100,14 @@ fun MeshtasticNavigationSuite(
     val layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo).coerceNavigationType()
     val showLabels = layoutType == NavigationSuiteType.NavigationRail
 
+    val trackingTabEnabled = LocalTrackingTabEnabled.current
+    val visibleDestinations = TopLevelDestination.visibleEntries(trackingTabEnabled)
+
     NavigationSuiteScaffold(
         modifier = modifier,
         layoutType = layoutType,
         navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
+            visibleDestinations.forEach { destination ->
                 val isSelected = destination == topLevelDestination
                 item(
                     selected = isSelected,

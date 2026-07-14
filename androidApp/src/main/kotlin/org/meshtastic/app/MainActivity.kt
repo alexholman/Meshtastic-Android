@@ -57,6 +57,7 @@ import org.koin.core.parameter.parametersOf
 import org.meshtastic.app.intro.AnalyticsIntro
 import org.meshtastic.app.map.getMapViewProvider
 import org.meshtastic.app.map.sitePlannerAvailable
+import org.meshtastic.app.map.tracking.TrackingFeature
 import org.meshtastic.app.node.component.InlineMap
 import org.meshtastic.app.node.metrics.getTracerouteMapOverlayInsets
 import org.meshtastic.app.ui.MainScreen
@@ -69,6 +70,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
 import org.meshtastic.core.service.MeshService
 import org.meshtastic.core.service.startService
+import org.meshtastic.core.ui.component.LocalTrackingTabEnabled
 import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.theme.EventFontResolver
 import org.meshtastic.core.ui.theme.EventTheme
@@ -280,6 +282,8 @@ class MainActivity : AppCompatActivity() {
                 { state, modifier ->
                     org.meshtastic.app.map.tracking.TrackingMap(state, modifier)
                 },
+            // Only the fdroid flavor ships a real tracking map, so only it opts the Tracking tab in.
+            LocalTrackingTabEnabled provides TrackingFeature.TAB_ENABLED,
             content = content,
         )
     }

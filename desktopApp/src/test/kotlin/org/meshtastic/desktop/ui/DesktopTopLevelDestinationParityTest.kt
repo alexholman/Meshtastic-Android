@@ -29,23 +29,26 @@ import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Keeps Desktop top-level destinations aligned with Android top-level navigation (Messages, Nodes, Map, Settings,
- * Connect).
+ * Connect). Desktop never opts the fork-specific Tracking tab in (no native map), so it renders the tracking-disabled
+ * set — see [TopLevelDestination.visibleEntries].
  */
 class DesktopTopLevelDestinationParityTest {
 
+    // Desktop provides no override for LocalTrackingTabEnabled, so it renders the default (disabled) set.
+    private val desktopRoutes: Set<KClass<out Route>> =
+        TopLevelDestination.visibleEntries(trackingTabEnabled = false).map { it.route::class }.toSet()
+
     @Test
     fun `desktop top-level routes match android parity set`() {
-        val desktopRoutes: Set<KClass<out Route>> = TopLevelDestination.entries.map { it.route::class }.toSet()
-
         val androidParityRoutes: Set<KClass<out Route>> =
             setOf(
                 ContactsRoute.Contacts::class,
                 NodesRoute.Nodes::class,
                 MapRoute.Map::class,
-                TrackingRoute.Tracking::class,
                 SettingsRoute.Settings::class,
                 ConnectionsRoute.Connections::class,
             )
@@ -58,9 +61,20 @@ class DesktopTopLevelDestinationParityTest {
     }
 
     @Test
-    fun `firmware is not a desktop top-level destination`() {
-        val desktopRoutes: Set<KClass<out Route>> = TopLevelDestination.entries.map { it.route::class }.toSet()
+    fun `tracking is not a desktop top-level destination`() {
+        assertFalse(
+            actual = desktopRoutes.contains(TrackingRoute.Tracking::class),
+            message = "Tracking is fdroid-only and must not appear in the desktop top-level rail",
+        )
+        // The route itself stays registered so the tracking deep link never crashes on desktop.
+        assertTrue(
+            actual = TopLevelDestination.entries.any { it.route is TrackingRoute },
+            message = "TrackingRoute must remain a registered top-level route for deep-link parity",
+        )
+    }
 
+    @Test
+    fun `firmware is not a desktop top-level destination`() {
         assertFalse(
             actual = desktopRoutes.contains(FirmwareRoute.FirmwareGraph::class),
             message = "Firmware must stay in-flow and not appear in the desktop top-level rail",

@@ -44,5 +44,16 @@ enum class TopLevelDestination(val label: StringResource, val route: Route) {
     companion object {
         fun fromNavKey(key: NavKey?): TopLevelDestination? =
             entries.find { dest -> key?.let { it::class == dest.route::class } == true }
+
+        /**
+         * Destinations to show in the navigation shell.
+         *
+         * [Tracking] is a fork-specific feature that is only functional on the fdroid Android flavor, so it is hidden
+         * by default and only included when [trackingTabEnabled] is opted in (see `LocalTrackingTabEnabled`). Every
+         * other destination is always shown. The full [entries] set is unchanged so that routes remain registered on
+         * all platforms (deep links must never crash).
+         */
+        fun visibleEntries(trackingTabEnabled: Boolean): List<TopLevelDestination> =
+            entries.filter { it != Tracking || trackingTabEnabled }
     }
 }
