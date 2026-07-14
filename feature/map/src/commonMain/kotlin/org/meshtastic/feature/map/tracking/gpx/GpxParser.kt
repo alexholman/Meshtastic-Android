@@ -40,25 +40,48 @@ object GpxParser {
     // runCatching (not an enumerated catch list): xmlutil surfaces malformed input through several exception
     // types, and an unlisted one escaping here would crash the caller's coroutine instead of rejecting the file.
     fun parse(fileId: String, fileName: String, gpxXml: String): Result<GpxOverlayData> = runCatching {
-        val gpx = xmlParser.decodeFromString(GpxXml.serializer(), stripDefaultNamespace(gpxXml))
+        val cleaned = stripDefaultNamespace(stripBom(gpxXml))
+        val gpx = xmlParser.decodeFromString(GpxXml.serializer(), cleaned)
         val trackList =
             gpx.tracks.map { trk ->
-                GpxTrack(name = trk.name?.value, points = trk.segments.flatMap { seg -> seg.points.map(::toPoint) })
-            } + gpx.routes.map { rte -> GpxTrack(name = rte.name?.value, points = rte.points.map(::toPoint)) }
+                GpxTrack(
+                    name = trk.name?.value,
+                    points = trk.segments.flatMap { seg -> seg.points.mapNotNull(::toPoint) },
+                )
+            } + gpx.routes.map { rte -> GpxTrack(name = rte.name?.value, points = rte.points.mapNotNull(::toPoint)) }
         GpxOverlayData(
             fileId = fileId,
             name = fileName,
-            waypoints = gpx.waypoints.map(::toPoint),
+            waypoints = gpx.waypoints.mapNotNull(::toPoint),
             tracks = trackList.filter { it.points.isNotEmpty() },
         )
     }
 
-    private fun toPoint(p: GpxPointXml) = GpxPoint(latitude = p.lat, longitude = p.lon, name = p.name?.value)
+    // A single point with a missing/unparseable lat or lon (or one out of valid range) is dropped rather than
+    // failing the whole file — real-world exports occasionally carry one bad fix among many good ones.
+    private fun toPoint(p: GpxPointXml): GpxPoint? {
+        val lat = p.lat?.toDoubleOrNull()?.takeIf { it in -MAX_LATITUDE..MAX_LATITUDE }
+        val lon = p.lon?.toDoubleOrNull()?.takeIf { it in -MAX_LONGITUDE..MAX_LONGITUDE }
+        return if (lat != null && lon != null) {
+            GpxPoint(latitude = lat, longitude = lon, name = p.name?.value)
+        } else {
+            null
+        }
+    }
 
-    /** Removes default `xmlns="..."` declarations so 1.0- and 1.1-namespaced documents both parse unqualified. */
+    /**
+     * Removes default `xmlns="..."` / `xmlns='...'` declarations so 1.0- and 1.1-namespaced documents both parse
+     * unqualified.
+     */
     private fun stripDefaultNamespace(xml: String): String = xml.replace(DEFAULT_XMLNS_REGEX, "")
 
-    private val DEFAULT_XMLNS_REGEX = Regex("""\sxmlns\s*=\s*"[^"]*"""")
+    /** Strips a leading UTF-8 BOM, which some Windows/Garmin exporters prepend and which otherwise breaks parsing. */
+    private fun stripBom(xml: String): String = xml.removePrefix(BOM)
+
+    private val DEFAULT_XMLNS_REGEX = Regex("""\sxmlns\s*=\s*(?:"[^"]*"|'[^']*')""")
+    private const val BOM = "\uFEFF"
+    private const val MAX_LATITUDE = 90.0
+    private const val MAX_LONGITUDE = 180.0
 }
 
 @Serializable
@@ -69,10 +92,13 @@ internal data class GpxXml(
     @XmlElement(true) @XmlSerialName("rte", "", "") val routes: List<GpxRouteXml> = emptyList(),
 )
 
+// lat/lon are plain (nullable) strings rather than Double: a missing attribute or a non-numeric value (e.g.
+// lat="abc") must not throw during deserialization and reject the whole document — toPoint() converts and
+// validates them, dropping just the offending point.
 @Serializable
 internal data class GpxPointXml(
-    val lat: Double,
-    val lon: Double,
+    val lat: String? = null,
+    val lon: String? = null,
     @XmlElement(true) @XmlSerialName("name", "", "") val name: GpxNameXml? = null,
 )
 

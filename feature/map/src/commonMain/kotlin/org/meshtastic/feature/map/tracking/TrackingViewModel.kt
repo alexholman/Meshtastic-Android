@@ -51,6 +51,7 @@ import org.meshtastic.feature.map.tracking.model.GpxOverlayData
 import org.meshtastic.feature.map.tracking.model.NodeTrack
 import org.meshtastic.feature.map.tracking.model.TrackingMapState
 import org.meshtastic.proto.PortNum
+import org.meshtastic.proto.Position
 
 @KoinViewModel
 class TrackingViewModel(
@@ -64,7 +65,10 @@ class TrackingViewModel(
 
     private val json = Json { ignoreUnknownKeys = true }
     private val gpxEntrySerializer = ListSerializer(GpxFileEntry.serializer())
-    private val gpxCache = mutableMapOf<String, GpxOverlayData?>()
+
+    // Caches Result rather than a nullable value so a parse/read failure is remembered too — otherwise a corrupt
+    // stored file would be re-read and re-parsed on every emission of gpxFiles/gpxOverlays.
+    private val gpxCache = mutableMapOf<String, Result<GpxOverlayData>>()
 
     val applicationId = buildConfigProvider.applicationId
 
@@ -109,6 +113,7 @@ class TrackingViewModel(
             meshLogRepository.getMeshPacketsFrom(logId, PortNum.POSITION_APP.value).map { packets ->
                 packets
                     .mapNotNull { it.toPosition() }
+                    .filter { it.hasValidFix() }
                     .asFlow()
                     .distinctUntilChanged { old, new ->
                         old.time == new.time || (old.latitude_i == new.latitude_i && old.longitude_i == new.longitude_i)
@@ -147,13 +152,14 @@ class TrackingViewModel(
                 _gpxImportErrors.emit(Unit)
                 return@launch
             }
-            val parsed = gpxFileStore.readText(entry)?.let { GpxParser.parse(entry.id, entry.name, it).getOrNull() }
+            val result = readAndParse(entry)
+            val parsed = result.getOrNull()
             if (parsed == null) {
                 gpxFileStore.delete(entry)
                 _gpxImportErrors.emit(Unit)
                 return@launch
             }
-            gpxCache[entry.id] = parsed
+            gpxCache[entry.id] = result
             saveGpxEntries(decodeGpxEntries(trackingPrefs.gpxFilesJson.value) + entry)
         }
     }
@@ -168,12 +174,14 @@ class TrackingViewModel(
 
     private val gpxOverlays: Flow<List<GpxOverlayData>> =
         gpxFiles.mapLatest { entries ->
-            entries.mapNotNull { entry ->
-                gpxCache.getOrPut(entry.id) {
-                    gpxFileStore.readText(entry)?.let { GpxParser.parse(entry.id, entry.name, it).getOrNull() }
-                }
-            }
+            entries.mapNotNull { entry -> gpxCache.getOrPut(entry.id) { readAndParse(entry) }.getOrNull() }
         }
+
+    /** Reads and parses [entry] at most once; the result (success or failure) is cached by the caller. */
+    private suspend fun readAndParse(entry: GpxFileEntry): Result<GpxOverlayData> {
+        val text = gpxFileStore.readText(entry) ?: return Result.failure(GpxUnreadableException(entry.name))
+        return GpxParser.parse(entry.id, entry.name, text)
+    }
 
     val mapState: StateFlow<TrackingMapState> =
         combine(tracks, gpxOverlays, mapPrefs.mapStyle) { nodeTracks, overlays, mapStyleId ->
@@ -198,3 +206,18 @@ class TrackingViewModel(
         trackingPrefs.setGpxFilesJson(json.encodeToString(gpxEntrySerializer, entries))
     }
 }
+
+// No-fix reports are (0,0) (mirrors TrackedNodeMonitor.onPositionReceived), and any out-of-range lat/lon is never
+// a real fix either; both would otherwise draw a polyline spike to Null Island and blow out fit-bounds.
+private fun Position.hasValidFix(): Boolean {
+    val latI = latitude_i ?: 0
+    val lonI = longitude_i ?: 0
+    if (latI == 0 && lonI == 0) return false
+    return latI in -MAX_LATITUDE_I..MAX_LATITUDE_I && lonI in -MAX_LONGITUDE_I..MAX_LONGITUDE_I
+}
+
+private const val MAX_LATITUDE_I = 900_000_000
+private const val MAX_LONGITUDE_I = 1_800_000_000
+
+/** A stored GPX file was missing or unreadable; carries no platform-specific cause since [GpxFileStore] flattens it. */
+private class GpxUnreadableException(fileName: String) : Exception("Unable to read GPX file: $fileName")

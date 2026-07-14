@@ -124,4 +124,91 @@ class GpxParserTest {
     fun `non gpx xml returns failure`() {
         assertTrue(parse("<kml><Document/></kml>").isFailure)
     }
+
+    @Test
+    fun `accepts single quoted xmlns`() {
+        val xml =
+            """
+            <gpx xmlns='http://www.topografix.com/GPX/1/1' version="1.1" creator="test">
+              <wpt lat="47.1" lon="8.1"><name>Single Quoted</name></wpt>
+            </gpx>
+            """
+                .trimIndent()
+        val data = parse(xml).getOrThrow()
+        assertEquals(1, data.waypoints.size)
+        assertEquals("Single Quoted", data.waypoints[0].name)
+    }
+
+    @Test
+    fun `strips leading byte order mark before parsing`() {
+        val xml =
+            "\uFEFF" +
+                """
+                <gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="test">
+                  <wpt lat="47.1" lon="8.1"><name>After BOM</name></wpt>
+                </gpx>
+                """
+                    .trimIndent()
+        val data = parse(xml).getOrThrow()
+        assertEquals(1, data.waypoints.size)
+        assertEquals("After BOM", data.waypoints[0].name)
+    }
+
+    @Test
+    fun `skips a trackpoint with malformed lat while keeping the rest`() {
+        val xml =
+            """
+            <gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="test">
+              <trk><name>Course</name>
+                <trkseg>
+                  <trkpt lat="47.0" lon="8.0"/>
+                  <trkpt lat="abc" lon="8.1"/>
+                  <trkpt lat="47.2" lon="8.2"/>
+                </trkseg>
+              </trk>
+            </gpx>
+            """
+                .trimIndent()
+        val data = parse(xml).getOrThrow()
+        assertEquals(1, data.tracks.size)
+        assertEquals(2, data.tracks[0].points.size)
+        assertEquals(47.0, data.tracks[0].points[0].latitude)
+        assertEquals(47.2, data.tracks[0].points[1].latitude)
+    }
+
+    @Test
+    fun `skips a trackpoint with missing lon while keeping the rest`() {
+        val xml =
+            """
+            <gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="test">
+              <trk><name>Course</name>
+                <trkseg>
+                  <trkpt lat="47.0" lon="8.0"/>
+                  <trkpt lat="47.1"/>
+                  <trkpt lat="47.2" lon="8.2"/>
+                </trkseg>
+              </trk>
+            </gpx>
+            """
+                .trimIndent()
+        val data = parse(xml).getOrThrow()
+        assertEquals(1, data.tracks.size)
+        assertEquals(2, data.tracks[0].points.size)
+        assertEquals(47.0, data.tracks[0].points[0].latitude)
+        assertEquals(47.2, data.tracks[0].points[1].latitude)
+    }
+
+    @Test
+    fun `waypoint name in cdata parses`() {
+        val xml =
+            """
+            <gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="test">
+              <wpt lat="1.0" lon="2.0"><name><![CDATA[Aid & Station]]></name></wpt>
+            </gpx>
+            """
+                .trimIndent()
+        val data = parse(xml).getOrThrow()
+        assertEquals(1, data.waypoints.size)
+        assertEquals("Aid & Station", data.waypoints[0].name)
+    }
 }

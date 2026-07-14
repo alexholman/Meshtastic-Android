@@ -123,6 +123,50 @@ class TrackingViewModelTest {
     }
 
     @Test
+    fun `positions with 0 0 or out of range coordinates are excluded`() = runTest {
+        nodeRepository.setNodes(listOf(node(NODE_A)))
+        trackingPrefs.setTrackedNodeNums(setOf(NODE_A))
+        every { meshLogRepository.getMeshPacketsFrom(NODE_A, PortNum.POSITION_APP.value) } returns
+            flowOf(
+                listOf(
+                    positionPacket(NODE_A, latI = 100, lonI = 200, time = 100),
+                    // No-fix report: (0,0) must be dropped.
+                    positionPacket(NODE_A, latI = 0, lonI = 0, time = 150),
+                    // Out-of-range latitude (>90 degrees) must be dropped.
+                    positionPacket(NODE_A, latI = 950_000_000, lonI = 200, time = 175),
+                    positionPacket(NODE_A, latI = 300, lonI = 400, time = 200),
+                ),
+            )
+
+        viewModel().mapState.test {
+            var state = awaitItem()
+            while (state.tracks.isEmpty()) state = awaitItem()
+            val track = state.tracks.single()
+            assertEquals(listOf(100, 200), track.positions.map { it.time })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `two tracked nodes produce two node tracks with correct positions`() = runTest {
+        nodeRepository.setNodes(listOf(node(NODE_A), node(NODE_B)))
+        trackingPrefs.setTrackedNodeNums(setOf(NODE_A, NODE_B))
+        every { meshLogRepository.getMeshPacketsFrom(NODE_A, PortNum.POSITION_APP.value) } returns
+            flowOf(listOf(positionPacket(NODE_A, latI = 100, lonI = 200, time = 100)))
+        every { meshLogRepository.getMeshPacketsFrom(NODE_B, PortNum.POSITION_APP.value) } returns
+            flowOf(listOf(positionPacket(NODE_B, latI = 300, lonI = 400, time = 150)))
+
+        viewModel().mapState.test {
+            var state = awaitItem()
+            while (state.tracks.size < 2) state = awaitItem()
+            val byNode = state.tracks.associateBy { it.nodeNum }
+            assertEquals(listOf(100), byNode.getValue(NODE_A).positions.map { it.time })
+            assertEquals(listOf(150), byNode.getValue(NODE_B).positions.map { it.time })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `toggleTracked adds and removes a node`() {
         val vm = viewModel()
         vm.toggleTracked(NODE_A)
@@ -157,6 +201,42 @@ class TrackingViewModelTest {
         }
         assertEquals("[]", trackingPrefs.gpxFilesJson.value)
         assertTrue(gpxFileStore.files.isEmpty())
+    }
+
+    @Test
+    fun `valid stored gpx file overlay reaches map state`() = runTest {
+        gpxFileStore.files["gpx-0"] = VALID_GPX
+        trackingPrefs.setGpxFilesJson("""[{"id":"gpx-0","name":"course.gpx","storedPath":"/fake/gpx-0.gpx"}]""")
+
+        viewModel().mapState.test {
+            var state = awaitItem()
+            while (state.gpxOverlays.isEmpty()) state = awaitItem()
+            assertEquals(1, state.gpxOverlays.size)
+            assertEquals("course.gpx", state.gpxOverlays.single().name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `corrupt stored gpx file is read at most once across multiple emissions`() = runTest {
+        gpxFileStore.files["gpx-0"] = "not xml at all"
+        trackingPrefs.setGpxFilesJson("""[{"id":"gpx-0","name":"bad.gpx","storedPath":"/fake/gpx-0.gpx"}]""")
+
+        viewModel().mapState.test {
+            awaitItem()
+
+            // Change the persisted entry list (adding a second, valid file) so gpxFiles/gpxOverlays recompute for
+            // the whole list, including the already-cached corrupt entry.
+            gpxFileStore.files["gpx-1"] = VALID_GPX
+            trackingPrefs.setGpxFilesJson(
+                """[{"id":"gpx-0","name":"bad.gpx","storedPath":"/fake/gpx-0.gpx"},""" +
+                    """{"id":"gpx-1","name":"course.gpx","storedPath":"/fake/gpx-1.gpx"}]""",
+            )
+            var state = awaitItem()
+            while (state.gpxOverlays.isEmpty()) state = awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertEquals(1, gpxFileStore.readCounts["gpx-0"])
     }
 
     private fun node(num: Int) =
@@ -198,6 +278,9 @@ class TrackingViewModelTest {
         val files = mutableMapOf<String, String>()
         var contentOverride: String? = null
         private var nextId = 0
+        private val _readCounts = mutableMapOf<String, Int>()
+        val readCounts: Map<String, Int>
+            get() = _readCounts
 
         override suspend fun import(sourceUri: CommonUri, displayName: String): GpxFileEntry? {
             val id = "gpx-${nextId++}"
@@ -205,7 +288,10 @@ class TrackingViewModelTest {
             return GpxFileEntry(id = id, name = displayName, storedPath = "/fake/$id.gpx")
         }
 
-        override suspend fun readText(entry: GpxFileEntry): String? = files[entry.id]
+        override suspend fun readText(entry: GpxFileEntry): String? {
+            _readCounts[entry.id] = (_readCounts[entry.id] ?: 0) + 1
+            return files[entry.id]
+        }
 
         override suspend fun delete(entry: GpxFileEntry) {
             files.remove(entry.id)
