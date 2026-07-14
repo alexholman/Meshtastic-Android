@@ -20,9 +20,9 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
-import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.repository.NodeManager
 import org.meshtastic.core.repository.Notification
 import org.meshtastic.core.repository.NotificationManager
@@ -33,6 +33,7 @@ import org.meshtastic.core.resources.tracking_reacquired_body
 import org.meshtastic.core.resources.tracking_reacquired_title
 import org.meshtastic.core.resources.unknown_username
 import org.meshtastic.proto.Position
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Raises a reacquisition alert when a node selected on the tracking map reports a position after at least
@@ -41,11 +42,18 @@ import org.meshtastic.proto.Position
  *
  * Hooked from [MeshDataHandlerImpl.handlePosition] beside [GeofenceMonitor], and structured the same way: received
  * positions are funnelled through a single ordered worker so two positions for the same node can never be evaluated out
- * of order (which would corrupt the last-seen baseline and fire spurious alerts).
+ * of order (which would corrupt the arming baseline and fire spurious alerts).
  *
- * Gap math uses local receipt time, not the device-reported position timestamp, since tracked nodes in the field may
- * have skewed clocks or no valid time fix. The first position seen for a node after app start only establishes the
- * baseline; alerts fire from the second sighting onward.
+ * The decision is delegated to a per-node arming state machine ([ReacquisitionTracker]): a node must first demonstrate
+ * one *healthy* reporting interval (a gap shorter than the timeout) before it can alert, then alerts exactly once when
+ * the next gap reaches the timeout, and re-arms only after another healthy interval. This is what stops a routine
+ * beacon whose cadence already exceeds the timeout from firing on every packet, and stops an instant alert when a node
+ * with a stale in-memory baseline is added to tracking (an untracked node's state is dropped, so tracking-start seeds
+ * fresh — an app restart reseeds the same way, since all state is in-memory). Documented trade-off: an alternating
+ * long-gap / single-fix pattern only alerts on the *first* loss until a healthy interval re-arms the node.
+ *
+ * Timing is monotonic ([kotlin.time.TimeSource]), not wall-clock, so an NTP correction on a field device that syncs its
+ * clock after boot can neither fabricate a spurious alert nor swallow a real one.
  */
 @Single
 class TrackedNodeMonitor(
@@ -55,23 +63,32 @@ class TrackedNodeMonitor(
     @Named("ServiceScope") private val scope: CoroutineScope,
 ) {
 
-    private data class PositionSample(val nodeNum: Int, val receivedAtSeconds: Long)
+    // Unbounded so we never drop a sample (which would corrupt the arming baseline); positions arrive infrequently.
+    private val samples = Channel<Int>(Channel.UNLIMITED)
 
-    // Unbounded so we never drop a sample (which would corrupt the last-seen baseline); positions arrive infrequently.
-    private val samples = Channel<PositionSample>(Channel.UNLIMITED)
+    /**
+     * Arming state machine. `internal var` (not a constructor param) so `@Single` Koin resolution stays a plain 4-arg
+     * graph, while tests can swap in a [ReacquisitionTracker] backed by a [kotlin.time.TestTimeSource].
+     */
+    internal var reacquisitionTracker: ReacquisitionTracker = ReacquisitionTracker()
 
-    /** Last position receipt time per node. Only touched by the single serial consumer, so no locking is needed. */
-    private val lastSeenSeconds = mutableMapOf<Int, Long>()
+    /**
+     * String resolution seam. Defaults to compose-resources' [getStringSuspend], which never resolves in the plain-JVM
+     * test runner; tests override this to assert the dispatch path.
+     */
+    internal var resolveString: suspend (StringResource, Array<out Any>) -> String = { resource, args ->
+        getStringSuspend(resource, *args)
+    }
 
     init {
         scope.launch {
-            for (sample in samples) {
+            for (nodeNum in samples) {
                 try {
-                    evaluate(sample)
+                    evaluate(nodeNum)
                 } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
                     // Isolate per-sample failures: an unexpected throw must not kill the sole consumer and silently
                     // stop reacquisition alerts for the rest of the session.
-                    Logger.e(e) { "Reacquisition evaluation failed for node ${sample.nodeNum}; skipping sample" }
+                    Logger.e(e) { "Reacquisition evaluation failed for node $nodeNum; skipping sample" }
                 }
             }
         }
@@ -83,21 +100,16 @@ class TrackedNodeMonitor(
         val lonI = position.longitude_i ?: 0
         // Skip our own position and no-fix reports (0,0): a node with no GPS lock hasn't "reported a location."
         if (nodeNum == myNodeNum || (latI == 0 && lonI == 0)) return
-        samples.trySend(PositionSample(nodeNum, nowSeconds))
+        samples.trySend(nodeNum)
     }
 
-    private suspend fun evaluate(sample: PositionSample) {
-        // put() returns the previous last-seen time; null means this is the baseline sighting.
-        val previousSeconds = lastSeenSeconds.put(sample.nodeNum, sample.receivedAtSeconds)
-        val gapSeconds = if (previousSeconds == null) -1L else sample.receivedAtSeconds - previousSeconds
-        val timeoutSeconds = trackingPrefs.reacquisitionTimeoutMinutes.value.toLong() * SECONDS_PER_MINUTE
-        val shouldNotify =
-            gapSeconds >= 0 &&
-                gapSeconds >= timeoutSeconds &&
-                sample.nodeNum in trackingPrefs.trackedNodeNums.value &&
-                trackingPrefs.reacquisitionAlertsEnabled.value
-        if (shouldNotify) {
-            notifyReacquired(sample.nodeNum, gapSeconds / SECONDS_PER_MINUTE)
+    private suspend fun evaluate(nodeNum: Int) {
+        val tracked = nodeNum in trackingPrefs.trackedNodeNums.value
+        val timeout = trackingPrefs.reacquisitionTimeoutMinutes.value.minutes
+        // The tracker always folds the sighting into per-node state, so disabling alerts still advances arming.
+        val decision = reacquisitionTracker.evaluate(nodeNum, tracked, timeout)
+        if (decision.alert && trackingPrefs.reacquisitionAlertsEnabled.value) {
+            notifyReacquired(nodeNum, decision.gapMinutes)
         }
     }
 
@@ -106,11 +118,14 @@ class TrackedNodeMonitor(
         val nodeName =
             node?.user?.long_name?.takeIf { it.isNotBlank() }
                 ?: node?.user?.short_name?.takeIf { it.isNotBlank() }
-                ?: getStringSuspend(Res.string.unknown_username)
+                ?: resolveString(Res.string.unknown_username, emptyArray())
         notificationManager.dispatch(
             Notification(
-                title = getStringSuspend(Res.string.tracking_reacquired_title, nodeName),
-                message = getStringSuspend(Res.string.tracking_reacquired_body, nodeName, gapMinutes),
+                title = resolveString(Res.string.tracking_reacquired_title, arrayOf(nodeName)),
+                message = resolveString(Res.string.tracking_reacquired_body, arrayOf<Any>(nodeName, gapMinutes)),
+                // Warning maps to a raised urgency on the Linux desktop sender (NotifyUrgency.NORMAL, up from the LOW
+                // that the default Type.Info would yield); other platforms key off category, so this is a no-op there.
+                type = Notification.Type.Warning,
                 category = Notification.Category.Tracking,
                 // Salted so a reacquisition alert never replaces another category's per-node notification.
                 id = "tracking:$nodeNum".hashCode(),
@@ -118,9 +133,5 @@ class TrackedNodeMonitor(
                 deepLinkUri = "meshtastic://meshtastic/tracking",
             ),
         )
-    }
-
-    private companion object {
-        const val SECONDS_PER_MINUTE = 60L
     }
 }
