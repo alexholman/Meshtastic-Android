@@ -19,7 +19,11 @@ package org.meshtastic.app.map.tracking
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -49,7 +53,7 @@ fun TrackingMap(state: TrackingMapState, modifier: Modifier = Modifier) {
     val density = LocalDensity.current
 
     val allPoints = remember(state) { allTrackingGeoPoints(state.tracks, state.gpxOverlays) }
-    val initialBox = remember { boundingBoxOf(allPoints) }
+    val initialBox = remember(allPoints) { boundingBoxOf(allPoints) }
     val mapView =
         rememberMapViewWithLifecycle(
             applicationId = state.applicationId,
@@ -57,11 +61,27 @@ fun TrackingMap(state: TrackingMapState, modifier: Modifier = Modifier) {
             tileSource = CustomTileSource.getTileSource(state.mapStyleId),
         )
 
+    // Frame the data exactly once: the map is created with a world-view default (see [boundingBoxOf]) since
+    // tracks/GPX overlays typically load a moment after first composition. As soon as we see the first non-empty
+    // set of points -- whether that's on the very first composition or a later recomposition -- zoom to fit them
+    // and never again, so the user's manual panning/zooming afterward is preserved. The fit-bounds [MapButton]
+    // remains the manual re-frame affordance.
+    var hasCentered by remember { mutableStateOf(false) }
+    LaunchedEffect(allPoints) {
+        if (hasCentered || allPoints.isEmpty()) return@LaunchedEffect
+        mapView.zoomToBoundingBox(boundingBoxOf(allPoints), true, FIT_BOUNDS_PADDING_PX)
+        hasCentered = true
+    }
+
     Box(modifier = modifier) {
         AndroidView(
             modifier = Modifier.matchParentSize(),
             factory = { mapView },
             update = { map ->
+                val desiredTileSource = CustomTileSource.getTileSource(state.mapStyleId)
+                if (map.tileProvider.tileSource.name() != desiredTileSource.name()) {
+                    map.setTileSource(desiredTileSource)
+                }
                 map.overlays.clear()
                 map.addCopyright()
                 map.addScaleBarOverlay(density)
