@@ -21,26 +21,28 @@ import kotlin.time.Duration
 import kotlin.time.TimeSource
 
 /**
- * Pure, side-effect-free arming state machine deciding when a tracked node's position counts as a "signal reacquired"
- * event. Extracted from [TrackedNodeMonitor] so the decision logic is directly unit-testable with a
+ * Pure, side-effect-free state machine deciding when a tracked node's position counts as a "signal reacquired" event.
+ * Extracted from [TrackedNodeMonitor] so the decision logic is directly unit-testable with a
  * [kotlin.time.TestTimeSource]; the monitor keeps the coroutine/notification plumbing.
  *
  * Timing uses a monotonic [TimeSource] (NTP-immune, KMP-friendly): a clock correction on a field device that syncs time
  * after boot can neither fabricate nor swallow a gap.
  *
- * Per-node state is `lastSeen` + `armed`. A node must first demonstrate one *healthy* interval (a gap shorter than the
- * timeout) before it is allowed to raise an alert; the alert then fires exactly once when the next gap is at least the
- * timeout, and the node re-arms only after another healthy interval. This is why a beacon whose routine cadence already
- * exceeds the timeout never spams — it never demonstrates a healthy interval, so it stays disarmed. The documented
- * trade-off (see [TrackedNodeMonitor]) is that an alternating long-gap / single-fix pattern only alerts on the first
- * loss until a healthy interval occurs.
+ * Per-node state is just the monotonic mark of the last received position. The first sighting of a node only seeds the
+ * baseline; after that, *any* received position whose gap since the previous one is at least the timeout is a
+ * reacquisition. There is deliberately no arming/hysteresis: a runner whose tracker gets exactly one fix out before
+ * dropping into a dead zone must still alert when it comes back, even though it never demonstrated a healthy reporting
+ * interval. The accepted trade-off is that a node whose routine broadcast cadence exceeds the timeout alerts on every
+ * packet — that is a configuration mismatch (timeout set below the node's cadence), and it degrades gracefully because
+ * the per-node notification id makes each alert replace the previous one rather than stack.
  */
 internal class ReacquisitionTracker(private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic) {
 
-    private data class NodeState(var lastSeen: ComparableTimeMark, var armed: Boolean)
-
-    /** Per-node arming state. Owned by [TrackedNodeMonitor]'s single serial consumer, so no locking is needed. */
-    private val states = mutableMapOf<Int, NodeState>()
+    /**
+     * Monotonic mark of each node's last received position. Owned by [TrackedNodeMonitor]'s single serial consumer, so
+     * no locking is needed.
+     */
+    private val lastSeen = mutableMapOf<Int, ComparableTimeMark>()
 
     /** Outcome of evaluating one received position. [gapMinutes] is only meaningful when [alert] is true. */
     data class Decision(val alert: Boolean, val gapMinutes: Long)
@@ -50,28 +52,18 @@ internal class ReacquisitionTracker(private val timeSource: TimeSource.WithCompa
      *
      * @param tracked whether the node is currently selected for tracking. An untracked node has its state dropped and
      *   never alerts, so track → untrack → track behaves like a fresh seed.
-     * @param timeout the silence threshold; a gap of at least this long on an armed node is a reacquisition.
+     * @param timeout the silence threshold; a gap of at least this long between two received positions is a
+     *   reacquisition.
      */
     fun evaluate(nodeNum: Int, tracked: Boolean, timeout: Duration): Decision {
         if (!tracked) {
-            states.remove(nodeNum)
+            lastSeen.remove(nodeNum)
             return Decision(alert = false, gapMinutes = 0L)
         }
         val now = timeSource.markNow()
-        val state = states[nodeNum]
-        val decision =
-            if (state == null) {
-                // First sighting only seeds the baseline — never alerts.
-                states[nodeNum] = NodeState(lastSeen = now, armed = false)
-                Decision(alert = false, gapMinutes = 0L)
-            } else {
-                val gap = now - state.lastSeen
-                val alert = state.armed && gap >= timeout
-                state.lastSeen = now
-                // Re-arm only after a healthy interval; a second consecutive long gap must not re-alert.
-                state.armed = gap < timeout
-                Decision(alert = alert, gapMinutes = gap.inWholeMinutes)
-            }
-        return decision
+        val previous = lastSeen.put(nodeNum, now)
+        // A null gap is the seeding first sighting, which never alerts.
+        val gap = previous?.let { now - it }
+        return Decision(alert = gap != null && gap >= timeout, gapMinutes = gap?.inWholeMinutes ?: 0L)
     }
 }

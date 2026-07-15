@@ -24,9 +24,9 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TestTimeSource
 
 /**
- * Exercises the reacquisition arming state machine directly with a [TestTimeSource], so every branch — including the
- * positive alert path that [TrackedNodeMonitorTest] can only assert once end-to-end — is covered deterministically
- * without touching coroutines or compose-resources.
+ * Exercises the reacquisition state machine directly with a [TestTimeSource], so every branch — including the positive
+ * alert path that [TrackedNodeMonitorTest] can only assert once end-to-end — is covered deterministically without
+ * touching coroutines or compose-resources.
  */
 class ReacquisitionTrackerTest {
 
@@ -42,73 +42,65 @@ class ReacquisitionTrackerTest {
     }
 
     @Test
-    fun longGapAfterSeedDoesNotAlertBecauseNodeIsNotYetArmed() {
+    fun longGapAfterSeedAlertsWithGapMinutes() {
         val time = TestTimeSource()
         val tracker = ReacquisitionTracker(time)
 
-        tracker.evaluate(node, tracked = true, timeout) // seed only
+        tracker.evaluate(node, tracked = true, timeout) // seed
         time += 20.minutes
 
-        // A node must demonstrate one healthy interval before it may alert; the seed did not.
-        assertFalse(tracker.evaluate(node, tracked = true, timeout).alert)
-    }
-
-    @Test
-    fun healthyIntervalArmsThenLongGapAlertsOnceWithGapMinutes() {
-        val time = TestTimeSource()
-        val tracker = ReacquisitionTracker(time)
-
-        tracker.evaluate(node, tracked = true, timeout) // seed
-        time += 1.minutes
-        assertFalse(tracker.evaluate(node, tracked = true, timeout).alert) // healthy interval -> arm
-        time += 15.minutes
-
+        // A single fix before the loss is enough: the very next position after the gap is a reacquisition.
         val decision = tracker.evaluate(node, tracked = true, timeout)
         assertTrue(decision.alert)
-        assertEquals(15L, decision.gapMinutes)
+        assertEquals(20L, decision.gapMinutes)
     }
 
     @Test
-    fun secondConsecutiveLongGapDoesNotReAlert() {
+    fun gapUnderTimeoutDoesNotAlert() {
         val time = TestTimeSource()
         val tracker = ReacquisitionTracker(time)
 
         tracker.evaluate(node, tracked = true, timeout) // seed
-        time += 1.minutes
-        tracker.evaluate(node, tracked = true, timeout) // arm
-        time += 15.minutes
-        assertTrue(tracker.evaluate(node, tracked = true, timeout).alert) // first loss
-        time += 15.minutes
+        time += 9.minutes
 
-        // Not re-armed (previous gap was not healthy), so a second long gap stays silent.
         assertFalse(tracker.evaluate(node, tracked = true, timeout).alert)
     }
 
     @Test
-    fun healthyIntervalReArmsAndNextLongGapAlertsAgain() {
+    fun consecutiveLongGapsEachAlert() {
         val time = TestTimeSource()
         val tracker = ReacquisitionTracker(time)
 
         tracker.evaluate(node, tracked = true, timeout) // seed
-        time += 1.minutes
-        tracker.evaluate(node, tracked = true, timeout) // arm
         time += 15.minutes
-        assertTrue(tracker.evaluate(node, tracked = true, timeout).alert) // first loss, disarms
+        assertTrue(tracker.evaluate(node, tracked = true, timeout).alert) // first loss
+
+        time += 15.minutes
+        // Every gap of at least the timeout is its own reacquisition — no arming between them.
+        assertTrue(tracker.evaluate(node, tracked = true, timeout).alert)
+    }
+
+    @Test
+    fun shortGapBetweenLongGapsOnlyTheLongGapsAlert() {
+        val time = TestTimeSource()
+        val tracker = ReacquisitionTracker(time)
+
+        tracker.evaluate(node, tracked = true, timeout) // seed
+        time += 15.minutes
+        assertTrue(tracker.evaluate(node, tracked = true, timeout).alert) // loss
         time += 1.minutes
-        assertFalse(tracker.evaluate(node, tracked = true, timeout).alert) // healthy interval -> re-arm
+        assertFalse(tracker.evaluate(node, tracked = true, timeout).alert) // routine report
         time += 15.minutes
 
         assertTrue(tracker.evaluate(node, tracked = true, timeout).alert) // second loss
     }
 
     @Test
-    fun gapExactlyEqualToTimeoutAlertsWhenArmed() {
+    fun gapExactlyEqualToTimeoutAlerts() {
         val time = TestTimeSource()
         val tracker = ReacquisitionTracker(time)
 
         tracker.evaluate(node, tracked = true, timeout) // seed
-        time += 1.minutes
-        tracker.evaluate(node, tracked = true, timeout) // arm
         time += 10.minutes // exactly the timeout
 
         assertTrue(tracker.evaluate(node, tracked = true, timeout).alert)
@@ -120,16 +112,13 @@ class ReacquisitionTrackerTest {
         val tracker = ReacquisitionTracker(time)
 
         tracker.evaluate(node, tracked = true, timeout) // seed
-        time += 1.minutes
-        tracker.evaluate(node, tracked = true, timeout) // arm
 
         // Untracking drops the state and never alerts.
         assertFalse(tracker.evaluate(node, tracked = false, timeout).alert)
-        time += 1.minutes
-        assertFalse(tracker.evaluate(node, tracked = true, timeout).alert) // fresh seed after retrack
         time += 15.minutes
 
-        // A long gap right after retracking must NOT alert: the node is a fresh, unarmed seed again.
+        // The first position after retracking is a fresh seed, even though the wall gap exceeded the timeout —
+        // otherwise adding a node to tracking would alert instantly off a stale baseline.
         assertFalse(tracker.evaluate(node, tracked = true, timeout).alert)
     }
 }

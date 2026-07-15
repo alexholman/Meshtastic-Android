@@ -137,11 +137,9 @@ class TrackedNodeMonitorTest {
     }
 
     @Test
-    fun gapUnderThresholdDoesNotAlertEvenWhenArmed() = runTest {
+    fun gapUnderThresholdDoesNotAlert() = runTest {
         val h = harness(tracked = setOf(sender), timeoutMinutes = 10)
         h.deliver(sender, fix) // seed
-        h.time += 1.minutes
-        h.deliver(sender, fix) // healthy interval -> arm
         h.time += 2.minutes
         h.deliver(sender, fix) // gap 2 min < 10 min threshold
         h.assertDispatched(0)
@@ -149,11 +147,9 @@ class TrackedNodeMonitorTest {
     }
 
     @Test
-    fun healthyIntervalThenLongGapDispatchesExactlyOnce() = runTest {
+    fun longGapAfterSingleSeedDispatches() = runTest {
         val h = harness(tracked = setOf(sender), timeoutMinutes = 10)
-        h.deliver(sender, fix) // seed
-        h.time += 1.minutes
-        h.deliver(sender, fix) // healthy interval -> arm
+        h.deliver(sender, fix) // the only fix before the loss
         h.time += 15.minutes
         h.deliver(sender, fix) // reacquisition after a long silence
         h.assertDispatched(1)
@@ -161,16 +157,14 @@ class TrackedNodeMonitorTest {
     }
 
     @Test
-    fun secondConsecutiveLongGapDoesNotReDispatch() = runTest {
+    fun consecutiveLongGapsEachDispatch() = runTest {
         val h = harness(tracked = setOf(sender), timeoutMinutes = 10)
         h.deliver(sender, fix) // seed
-        h.time += 1.minutes
-        h.deliver(sender, fix) // arm
         h.time += 15.minutes
-        h.deliver(sender, fix) // first loss -> dispatch, disarms
+        h.deliver(sender, fix) // first loss -> dispatch
         h.time += 15.minutes
-        h.deliver(sender, fix) // still disarmed -> no second dispatch
-        h.assertDispatched(1)
+        h.deliver(sender, fix) // second loss -> dispatch again (no arming between gaps)
+        h.assertDispatched(2)
         h.stop()
     }
 
@@ -178,8 +172,6 @@ class TrackedNodeMonitorTest {
     fun disabledSuppressesDispatchButStateStillAdvances() = runTest {
         val h = harness(tracked = setOf(sender), enabled = false, timeoutMinutes = 10)
         h.deliver(sender, fix) // seed (disabled)
-        h.time += 1.minutes
-        h.deliver(sender, fix) // healthy interval -> arm (disabled)
         h.time += 15.minutes
         h.deliver(sender, fix) // tracker would alert, but alerts are disabled -> suppressed
         h.assertDispatched(0)
@@ -187,8 +179,6 @@ class TrackedNodeMonitorTest {
         // Re-enable. Normal operation resuming immediately proves the tracker kept folding sightings into per-node
         // state throughout the disabled window (the last-seen baseline was maintained).
         h.enabled.value = true
-        h.time += 1.minutes
-        h.deliver(sender, fix) // healthy interval -> re-arm
         h.time += 15.minutes
         h.deliver(sender, fix) // long gap while enabled -> dispatches
         h.assertDispatched(1)
@@ -199,16 +189,12 @@ class TrackedNodeMonitorTest {
     fun untrackThenTrackBehavesLikeFreshSeed() = runTest {
         val h = harness(tracked = setOf(sender), timeoutMinutes = 10)
         h.deliver(sender, fix) // seed
-        h.time += 1.minutes
-        h.deliver(sender, fix) // arm
         h.tracked.value = emptySet() // untrack -> drops state
         h.time += 1.minutes
         h.deliver(sender, fix) // untracked, resets
         h.tracked.value = setOf(sender) // retrack
-        h.time += 1.minutes
-        h.deliver(sender, fix) // fresh seed
         h.time += 15.minutes
-        h.deliver(sender, fix) // long gap, but only just seeded -> not armed -> no alert
+        h.deliver(sender, fix) // first position after retracking is a fresh seed despite the long wall gap
         h.assertDispatched(0)
         h.stop()
     }

@@ -42,15 +42,15 @@ import kotlin.time.Duration.Companion.minutes
  *
  * Hooked from [MeshDataHandlerImpl.handlePosition] beside [GeofenceMonitor], and structured the same way: received
  * positions are funnelled through a single ordered worker so two positions for the same node can never be evaluated out
- * of order (which would corrupt the arming baseline and fire spurious alerts).
+ * of order (which would corrupt the last-seen baseline and fire spurious alerts).
  *
- * The decision is delegated to a per-node arming state machine ([ReacquisitionTracker]): a node must first demonstrate
- * one *healthy* reporting interval (a gap shorter than the timeout) before it can alert, then alerts exactly once when
- * the next gap reaches the timeout, and re-arms only after another healthy interval. This is what stops a routine
- * beacon whose cadence already exceeds the timeout from firing on every packet, and stops an instant alert when a node
- * with a stale in-memory baseline is added to tracking (an untracked node's state is dropped, so tracking-start seeds
- * fresh — an app restart reseeds the same way, since all state is in-memory). Documented trade-off: an alternating
- * long-gap / single-fix pattern only alerts on the *first* loss until a healthy interval re-arms the node.
+ * The decision is delegated to a per-node state machine ([ReacquisitionTracker]): the first position seen for a node
+ * only seeds its baseline, and every later position whose gap since the previous one is at least the timeout is a
+ * reacquisition — even when that previous position was the only fix before the loss, which is exactly the
+ * single-ping-then-dead-zone pattern this fork exists for. An untracked node's state is dropped, so tracking-start
+ * seeds fresh instead of alerting instantly off a stale baseline (an app restart reseeds the same way, since all state
+ * is in-memory). Accepted trade-off (see [ReacquisitionTracker]): a node whose routine cadence exceeds the timeout
+ * alerts on every packet, mitigated by the per-node notification id replacing rather than stacking alerts.
  *
  * Timing is monotonic ([kotlin.time.TimeSource]), not wall-clock, so an NTP correction on a field device that syncs its
  * clock after boot can neither fabricate a spurious alert nor swallow a real one.
@@ -63,12 +63,12 @@ class TrackedNodeMonitor(
     @Named("ServiceScope") private val scope: CoroutineScope,
 ) {
 
-    // Unbounded so we never drop a sample (which would corrupt the arming baseline); positions arrive infrequently.
+    // Unbounded so we never drop a sample (which would corrupt the last-seen baseline); positions arrive infrequently.
     private val samples = Channel<Int>(Channel.UNLIMITED)
 
     /**
-     * Arming state machine. `internal var` (not a constructor param) so `@Single` Koin resolution stays a plain 4-arg
-     * graph, while tests can swap in a [ReacquisitionTracker] backed by a [kotlin.time.TestTimeSource].
+     * Reacquisition state machine. `internal var` (not a constructor param) so `@Single` Koin resolution stays a plain
+     * 4-arg graph, while tests can swap in a [ReacquisitionTracker] backed by a [kotlin.time.TestTimeSource].
      */
     internal var reacquisitionTracker: ReacquisitionTracker = ReacquisitionTracker()
 
@@ -106,7 +106,7 @@ class TrackedNodeMonitor(
     private suspend fun evaluate(nodeNum: Int) {
         val tracked = nodeNum in trackingPrefs.trackedNodeNums.value
         val timeout = trackingPrefs.reacquisitionTimeoutMinutes.value.minutes
-        // The tracker always folds the sighting into per-node state, so disabling alerts still advances arming.
+        // The tracker always folds the sighting into per-node state, so disabling alerts still updates the baseline.
         val decision = reacquisitionTracker.evaluate(nodeNum, tracked, timeout)
         if (decision.alert && trackingPrefs.reacquisitionAlertsEnabled.value) {
             notifyReacquired(nodeNum, decision.gapMinutes)
