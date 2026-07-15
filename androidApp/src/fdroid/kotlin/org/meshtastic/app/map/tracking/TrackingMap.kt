@@ -16,7 +16,10 @@
  */
 package org.meshtastic.app.map.tracking
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,8 +38,11 @@ import org.meshtastic.app.map.addScaleBarOverlay
 import org.meshtastic.app.map.model.CustomTileSource
 import org.meshtastic.app.map.rememberMapViewWithLifecycle
 import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.toggle_my_position
 import org.meshtastic.core.resources.tracking_fit_bounds
+import org.meshtastic.core.ui.icon.LocationDisabled
 import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.core.ui.icon.MyLocation
 import org.meshtastic.core.ui.icon.SelectAll
 import org.meshtastic.feature.map.component.MapButton
 import org.meshtastic.feature.map.tracking.model.TrackingMapState
@@ -73,6 +79,8 @@ fun TrackingMap(state: TrackingMapState, modifier: Modifier = Modifier) {
         hasCentered = true
     }
 
+    val myLocation = rememberTrackingMyLocation(mapView)
+
     Box(modifier = modifier) {
         AndroidView(
             modifier = Modifier.matchParentSize(),
@@ -87,19 +95,38 @@ fun TrackingMap(state: TrackingMapState, modifier: Modifier = Modifier) {
                 map.addScaleBarOverlay(density)
                 state.gpxOverlays.forEach { overlay -> map.addGpxOverlay(density, overlay) }
                 state.tracks.forEach { track -> map.addNodeTrack(density, track) }
+                myLocation.reattach()
                 map.invalidate()
             },
         )
 
-        MapButton(
-            icon = MeshtasticIcons.SelectAll,
-            contentDescription = stringResource(Res.string.tracking_fit_bounds),
-            onClick = {
+        TrackingMapButtons(
+            myLocation = myLocation,
+            onFitBounds = {
                 if (allPoints.isNotEmpty()) {
                     mapView.zoomToBoundingBox(boundingBoxOf(allPoints), true, FIT_BOUNDS_PADDING_PX)
                 }
             },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.TrackingMapButtons(myLocation: TrackingMyLocationController, onFitBounds: () -> Unit) {
+    Column(
+        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        MapButton(
+            icon = if (myLocation.enabled) MeshtasticIcons.LocationDisabled else MeshtasticIcons.MyLocation,
+            contentDescription = stringResource(Res.string.toggle_my_position),
+            // Read the var at click time: the permission flow reassigns it on recomposition.
+            onClick = { myLocation.onButtonClick() },
+        )
+        MapButton(
+            icon = MeshtasticIcons.SelectAll,
+            contentDescription = stringResource(Res.string.tracking_fit_bounds),
+            onClick = onFitBounds,
         )
     }
 }
