@@ -108,6 +108,7 @@ class MeshDataHandlerImpl(
     private val adminPacketHandler: AdminPacketHandler,
     private val collectorRegistry: DiscoveryPacketCollectorRegistry,
     private val geofenceMonitor: GeofenceMonitor,
+    private val trackedNodeMonitor: TrackedNodeMonitor,
     private val meshBeaconRepository: MeshBeaconRepository,
     @Named("ServiceScope") private val scope: CoroutineScope,
 ) : MeshDataHandler {
@@ -262,6 +263,7 @@ class MeshDataHandlerImpl(
         Logger.d { "Position from ${packet.from}: ${Position.ADAPTER.toOneLiner(p)}" }
         nodeManager.handleReceivedPosition(packet.from, myNodeNum, p, dataPacket.time)
         geofenceMonitor.onPositionReceived(packet.from, myNodeNum, p)
+        trackedNodeMonitor.onPositionReceived(packet.from, myNodeNum, p)
     }
 
     private fun handleWaypoint(packet: MeshPacket, dataPacket: DataPacket, myNodeNum: Int) {

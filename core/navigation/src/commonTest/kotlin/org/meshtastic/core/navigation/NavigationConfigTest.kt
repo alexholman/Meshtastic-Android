@@ -51,6 +51,8 @@ class NavigationConfigTest {
             // MapRoute
             MapRoute.Map(),
             MapRoute.Map(waypointId = 42),
+            // TrackingRoute
+            TrackingRoute.Tracking,
             // NodesRoute
             NodesRoute.Nodes,
             NodesRoute.NodeDetail(destNum = 5678),
@@ -137,6 +139,7 @@ class NavigationConfigTest {
                         is ConnectionsRoute -> "ConnectionsRoute"
                         is ContactsRoute -> "ContactsRoute"
                         is MapRoute -> "MapRoute"
+                        is TrackingRoute -> "TrackingRoute"
                         is NodesRoute -> "NodesRoute"
                         is NodeDetailRoute -> "NodeDetailRoute"
                         is SettingsRoute -> "SettingsRoute"
@@ -153,6 +156,7 @@ class NavigationConfigTest {
                 "ConnectionsRoute",
                 "ContactsRoute",
                 "MapRoute",
+                "TrackingRoute",
                 "NodesRoute",
                 "NodeDetailRoute",
                 "SettingsRoute",

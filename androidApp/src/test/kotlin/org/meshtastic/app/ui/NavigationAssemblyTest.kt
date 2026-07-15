@@ -29,6 +29,7 @@ import org.meshtastic.feature.connections.navigation.connectionsGraph
 import org.meshtastic.feature.discovery.navigation.discoveryGraph
 import org.meshtastic.feature.firmware.navigation.firmwareGraph
 import org.meshtastic.feature.map.navigation.mapGraph
+import org.meshtastic.feature.map.tracking.navigation.trackingGraph
 import org.meshtastic.feature.messaging.navigation.contactsGraph
 import org.meshtastic.feature.node.navigation.nodesGraph
 import org.meshtastic.feature.settings.navigation.settingsGraph
@@ -51,6 +52,7 @@ class NavigationAssemblyTest {
                 contactsGraph(backStack, emptyFlow(), onHandleDeepLink = { _, _ -> })
                 nodesGraph(backStack = backStack, scrollToTopEvents = emptyFlow())
                 mapGraph(backStack)
+                trackingGraph(backStack)
                 channelsGraph(backStack)
                 connectionsGraph(backStack)
                 discoveryGraph(backStack)

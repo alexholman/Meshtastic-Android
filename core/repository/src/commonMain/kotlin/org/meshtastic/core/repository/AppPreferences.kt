@@ -228,6 +228,28 @@ interface NotificationPrefs {
     fun setGeofenceAlertOptIn(waypointId: Int, enabled: Boolean)
 }
 
+/** Reactive interface for tracking-map preferences (tracked nodes, reacquisition alerts, GPX overlays). */
+interface TrackingPrefs {
+    /** Node numbers selected to appear on the tracking map. */
+    val trackedNodeNums: StateFlow<Set<Int>>
+
+    fun setTrackedNodeNums(nums: Set<Int>)
+
+    /** Minutes of silence after which a new position from a tracked node raises a reacquisition alert. */
+    val reacquisitionTimeoutMinutes: StateFlow<Int>
+
+    fun setReacquisitionTimeoutMinutes(minutes: Int)
+
+    val reacquisitionAlertsEnabled: StateFlow<Boolean>
+
+    fun setReacquisitionAlertsEnabled(enabled: Boolean)
+
+    /** JSON-encoded list of imported GPX file entries; encoding/decoding is owned by the feature layer. */
+    val gpxFilesJson: StateFlow<String>
+
+    fun setGpxFilesJson(json: String)
+}
+
 /** Reactive interface for general map preferences. */
 interface MapPrefs {
     val mapStyle: StateFlow<Int>

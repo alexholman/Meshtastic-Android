@@ -58,6 +58,11 @@ sealed interface MapRoute : Route {
 }
 
 @Serializable
+sealed interface TrackingRoute : Route {
+    @Serializable data object Tracking : TrackingRoute, Graph
+}
+
+@Serializable
 sealed interface NodesRoute : Route {
     @Serializable data object Nodes : NodesRoute, Graph
 

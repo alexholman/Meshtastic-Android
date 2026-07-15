@@ -33,6 +33,7 @@ import org.meshtastic.core.common.util.CommonUri
  * - `/nodes/{destNum}/{metric}` -> Specific node metric (e.g., `/nodes/1234/device-metrics`)
  * - `/messages` -> Conversation list
  * - `/messages/{contactKey}` -> Specific conversation
+ * - `/tracking` -> Tracking map
  * - `/settings` -> Settings root
  * - `/settings/{destNum}/{page}` -> Specific settings page for a node
  * - `/wifi-provision` -> WiFi provisioning screen
@@ -68,6 +69,8 @@ object DeepLinkRouter {
             "discovery" -> listOf(DiscoveryRoute.DiscoveryGraph)
 
             "map" -> routeMap(uri, pathSegments)
+
+            "tracking" -> listOf(TrackingRoute.Tracking)
 
             "nodes" -> routeNodes(uri, pathSegments)
 

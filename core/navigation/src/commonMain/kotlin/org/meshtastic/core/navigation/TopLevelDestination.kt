@@ -24,6 +24,7 @@ import org.meshtastic.core.resources.connect
 import org.meshtastic.core.resources.map
 import org.meshtastic.core.resources.messages
 import org.meshtastic.core.resources.nodes
+import org.meshtastic.core.resources.tracking
 
 /**
  * Shared top-level destinations for the application shell.
@@ -35,6 +36,7 @@ enum class TopLevelDestination(val label: StringResource, val route: Route) {
     Messages(Res.string.messages, ContactsRoute.Contacts),
     Nodes(Res.string.nodes, NodesRoute.Nodes),
     Map(Res.string.map, MapRoute.Map()),
+    Tracking(Res.string.tracking, TrackingRoute.Tracking),
     Settings(Res.string.bottom_nav_settings, SettingsRoute.Settings()),
     Connect(Res.string.connect, ConnectionsRoute.Connections()),
     ;
@@ -42,5 +44,16 @@ enum class TopLevelDestination(val label: StringResource, val route: Route) {
     companion object {
         fun fromNavKey(key: NavKey?): TopLevelDestination? =
             entries.find { dest -> key?.let { it::class == dest.route::class } == true }
+
+        /**
+         * Destinations to show in the navigation shell.
+         *
+         * [Tracking] is a fork-specific feature that is only functional on the fdroid Android flavor, so it is hidden
+         * by default and only included when [trackingTabEnabled] is opted in (see `LocalTrackingTabEnabled`). Every
+         * other destination is always shown. The full [entries] set is unchanged so that routes remain registered on
+         * all platforms (deep links must never crash).
+         */
+        fun visibleEntries(trackingTabEnabled: Boolean): List<TopLevelDestination> =
+            entries.filter { it != Tracking || trackingTabEnabled }
     }
 }

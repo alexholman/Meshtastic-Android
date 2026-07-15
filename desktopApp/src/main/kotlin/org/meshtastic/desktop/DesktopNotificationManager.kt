@@ -70,6 +70,7 @@ class DesktopNotificationManager(
                 Notification.Category.MeshBeacon -> prefs.nodeEventsEnabled.value
                 Notification.Category.Battery -> prefs.lowBatteryEnabled.value
                 Notification.Category.Alert -> true
+                Notification.Category.Tracking -> true
                 Notification.Category.Service -> true
             }
 

@@ -57,6 +57,7 @@ import org.koin.core.parameter.parametersOf
 import org.meshtastic.app.intro.AnalyticsIntro
 import org.meshtastic.app.map.getMapViewProvider
 import org.meshtastic.app.map.sitePlannerAvailable
+import org.meshtastic.app.map.tracking.TrackingFeature
 import org.meshtastic.app.node.component.InlineMap
 import org.meshtastic.app.node.metrics.getTracerouteMapOverlayInsets
 import org.meshtastic.app.ui.MainScreen
@@ -69,6 +70,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
 import org.meshtastic.core.service.MeshService
 import org.meshtastic.core.service.startService
+import org.meshtastic.core.ui.component.LocalTrackingTabEnabled
 import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.theme.EventFontResolver
 import org.meshtastic.core.ui.theme.EventTheme
@@ -102,6 +104,7 @@ import org.meshtastic.feature.intro.IntroViewModel
 import org.meshtastic.feature.map.MapScreen
 import org.meshtastic.feature.map.SharedMapViewModel
 import org.meshtastic.feature.map.node.NodeMapViewModel
+import org.meshtastic.feature.map.tracking.LocalTrackingMapProvider
 import org.meshtastic.feature.node.metrics.MetricsViewModel
 import org.meshtastic.feature.node.metrics.TracerouteMapScreen
 
@@ -275,6 +278,12 @@ class MainActivity : AppCompatActivity() {
                         waypointId = waypointId,
                     )
                 },
+            LocalTrackingMapProvider provides
+                { state, modifier ->
+                    org.meshtastic.app.map.tracking.TrackingMap(state, modifier)
+                },
+            // Only the fdroid flavor ships a real tracking map, so only it opts the Tracking tab in.
+            LocalTrackingTabEnabled provides TrackingFeature.TAB_ENABLED,
             content = content,
         )
     }

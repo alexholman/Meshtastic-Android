@@ -56,6 +56,7 @@ import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.core.repository.StoreForwardPacketHandler
 import org.meshtastic.core.repository.TelemetryPacketHandler
 import org.meshtastic.core.repository.TracerouteHandler
+import org.meshtastic.core.repository.TrackingPrefs
 import org.meshtastic.core.testing.FakeNotificationPrefs
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.ChannelSettings
@@ -94,6 +95,7 @@ class MeshDataHandlerTest {
     private val storeForwardHandler: StoreForwardPacketHandler = mock(MockMode.autofill)
     private val telemetryHandler: TelemetryPacketHandler = mock(MockMode.autofill)
     private val adminPacketHandler: AdminPacketHandler = mock(MockMode.autofill)
+    private val trackingPrefs: TrackingPrefs = mock(MockMode.autofill)
 
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
@@ -151,6 +153,15 @@ class MeshDataHandlerTest {
                     notificationPrefs = FakeNotificationPrefs(),
                     scope = geofenceScope,
                 ),
+                // TrackedNodeMonitor is likewise a final @Single — use a real one; with no tracked nodes
+                // configured, onPositionReceived only records the last-seen baseline.
+                trackedNodeMonitor =
+                TrackedNodeMonitor(
+                    nodeManager = nodeManager,
+                    notificationManager = notificationManager,
+                    trackingPrefs = trackingPrefs,
+                    scope = geofenceScope,
+                ),
                 meshBeaconRepository = meshBeaconRepository,
                 scope = testScope,
             )
@@ -163,6 +174,10 @@ class MeshDataHandlerTest {
         every { radioConfigRepository.channelSetFlow } returns MutableStateFlow(ChannelSet())
         // GeofenceMonitor collects this on init; stub it so the launched collector doesn't NPE on the test scope.
         every { packetRepository.getWaypoints() } returns emptyFlow()
+        // TrackedNodeMonitor reads these when a position sample is evaluated.
+        every { trackingPrefs.trackedNodeNums } returns MutableStateFlow(emptySet())
+        every { trackingPrefs.reacquisitionAlertsEnabled } returns MutableStateFlow(true)
+        every { trackingPrefs.reacquisitionTimeoutMinutes } returns MutableStateFlow(10)
     }
 
     @Test

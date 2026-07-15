@@ -999,6 +999,7 @@ meshtastic_mesh_beacon_notifications
 meshtastic_messages_notifications
 meshtastic_new_nodes_notifications
 meshtastic_service_notifications
+meshtastic_tracking_notifications
 meshtastic_waypoints_notifications
 ### MESSAGE ###
 message
@@ -1623,6 +1624,20 @@ traceroute_route_towards_dest
 traceroute_showing_nodes
 track_and_share_locations
 track_point
+### TRACKING ###
+tracking
+tracking_add_gpx
+tracking_alerts
+tracking_alerts_enabled
+tracking_fit_bounds
+tracking_gpx_layers
+tracking_gpx_parse_error
+tracking_no_nodes
+tracking_not_supported_flavor
+tracking_reacquired_body
+tracking_reacquired_title
+tracking_select_nodes
+tracking_timeout_minutes
 ### TRAFFIC ###
 traffic_management
 traffic_management_config

@@ -22,6 +22,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.ic_forum
 import org.meshtastic.core.resources.ic_map
 import org.meshtastic.core.resources.ic_nodes
+import org.meshtastic.core.resources.ic_route
 import org.meshtastic.core.resources.ic_settings
 import org.meshtastic.core.resources.ic_wifi
 
@@ -32,6 +33,7 @@ val TopLevelDestination.icon: DrawableResource
             TopLevelDestination.Messages -> Res.drawable.ic_forum
             TopLevelDestination.Nodes -> Res.drawable.ic_nodes
             TopLevelDestination.Map -> Res.drawable.ic_map
+            TopLevelDestination.Tracking -> Res.drawable.ic_route
             TopLevelDestination.Settings -> Res.drawable.ic_settings
             TopLevelDestination.Connect -> Res.drawable.ic_wifi
         }

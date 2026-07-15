@@ -1029,6 +1029,7 @@
     <string name="meshtastic_messages_notifications">Direct message notifications</string>
     <string name="meshtastic_new_nodes_notifications">New node notifications</string>
     <string name="meshtastic_service_notifications">Service notifications</string>
+    <string name="meshtastic_tracking_notifications">Tracking alerts</string>
     <string name="meshtastic_waypoints_notifications">Waypoint notifications</string>
     <!-- MESSAGE -->
     <string name="message">Message</string>
@@ -1668,6 +1669,20 @@
     <string name="traceroute_showing_nodes">Showing %1$d/%2$d nodes</string>
     <string name="track_and_share_locations">Track and Share Locations</string>
     <string name="track_point">track point</string>
+    <!-- TRACKING -->
+    <string name="tracking">Tracking</string>
+    <string name="tracking_add_gpx">Add GPX file</string>
+    <string name="tracking_alerts">Reacquisition alerts</string>
+    <string name="tracking_alerts_enabled">Notify when a tracked node reappears</string>
+    <string name="tracking_fit_bounds">Zoom to all tracks</string>
+    <string name="tracking_gpx_layers">GPX overlays</string>
+    <string name="tracking_gpx_parse_error">Could not read GPX file</string>
+    <string name="tracking_no_nodes">No nodes seen yet</string>
+    <string name="tracking_not_supported_flavor">The tracking map is not available in this build</string>
+    <string name="tracking_reacquired_body">%1$s reported a position after %2$d minutes of silence</string>
+    <string name="tracking_reacquired_title">Signal reacquired: %1$s</string>
+    <string name="tracking_select_nodes">Tracked nodes</string>
+    <string name="tracking_timeout_minutes">Silence threshold (minutes)</string>
     <!-- TRAFFIC -->
     <string name="traffic_management">Traffic Management</string>
     <string name="traffic_management_config">Traffic Management Configuration</string>
